@@ -5,6 +5,10 @@ import (
 	"os"
 	"strings"
 
+	"recipe-manager/internal/recipe-manager/application"
+	"recipe-manager/internal/recipe-manager/infrastructure"
+	"recipe-manager/internal/recipe-manager/infrastructure/repository"
+
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 )
@@ -12,11 +16,21 @@ import (
 func main() {
 	setConfig()
 
-	router := gin.Default()
+	router := makeRouter()
 	port := viper.GetInt("server.port")
 	if err := router.Run(fmt.Sprintf(":%d", port)); err != nil {
 		panic("failed to start server")
 	}
+}
+
+func makeRouter() *gin.Engine {
+	recipeController := infrastructure.NewRecipeController(
+		application.NewRecipeService(repository.NewRecipeRepository()),
+	)
+
+	router := gin.Default()
+	router.POST("/recipes/:uuid/aggregate", recipeController.RetrieveRecipe)
+	return router
 }
 
 func setConfig() {
