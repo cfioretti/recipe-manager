@@ -3,10 +3,14 @@ package domain
 import "github.com/google/uuid"
 
 type Recipe struct {
-	RecipeUuid uuid.UUID
-	Dough      Dough
-	Topping    Topping
-	Steps      Steps
+	Id          int
+	Uuid        uuid.UUID
+	Name        string
+	Description string
+	Author      string
+	Dough       Dough
+	Topping     Topping
+	Steps       Steps
 }
 
 type RecipeAggregate struct {
