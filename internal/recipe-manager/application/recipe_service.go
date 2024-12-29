@@ -7,7 +7,7 @@ import (
 )
 
 type RecipeRepositoryInterface interface {
-	GetRecipe(uuid.UUID) *domain.Recipe
+	GetRecipe(uuid.UUID) *domain.RecipeAggregate
 }
 
 type RecipeService struct {
@@ -18,6 +18,6 @@ func NewRecipeService(repository RecipeRepositoryInterface) *RecipeService {
 	return &RecipeService{repository: repository}
 }
 
-func (s *RecipeService) Handle(recipeUuid uuid.UUID) *domain.Recipe {
+func (s *RecipeService) Handle(recipeUuid uuid.UUID) *domain.RecipeAggregate {
 	return s.repository.GetRecipe(recipeUuid)
 }

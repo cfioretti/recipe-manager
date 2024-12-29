@@ -10,7 +10,7 @@ import (
 )
 
 type RecipeHandler interface {
-	Handle(uuid.UUID) *domain.Recipe
+	Handle(uuid.UUID) *domain.RecipeAggregate
 }
 
 type RecipeController struct {
