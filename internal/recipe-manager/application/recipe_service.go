@@ -6,18 +6,19 @@ import (
 	"github.com/google/uuid"
 )
 
-type RecipeRepositoryInterface interface {
-	GetRecipe(uuid.UUID) *domain.RecipeAggregate
+type RecipeRepository interface {
+	GetRecipeByUuid(uuid.UUID) *domain.Recipe
 }
 
 type RecipeService struct {
-	repository RecipeRepositoryInterface
+	repository RecipeRepository
 }
 
-func NewRecipeService(repository RecipeRepositoryInterface) *RecipeService {
+func NewRecipeService(repository RecipeRepository) *RecipeService {
 	return &RecipeService{repository: repository}
 }
 
-func (s *RecipeService) Handle(recipeUuid uuid.UUID) *domain.RecipeAggregate {
-	return s.repository.GetRecipe(recipeUuid)
+func (rs *RecipeService) Handle(recipeUuid uuid.UUID) *domain.RecipeAggregate {
+	recipe := rs.repository.GetRecipeByUuid(recipeUuid)
+	return &domain.RecipeAggregate{Recipe: *recipe}
 }

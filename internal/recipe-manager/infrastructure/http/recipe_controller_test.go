@@ -1,4 +1,4 @@
-package infrastructure
+package http
 
 import (
 	"net/http/httptest"
@@ -21,7 +21,7 @@ func (m *MockRecipeService) Handle(recipeUuid uuid.UUID) *domain.RecipeAggregate
 	return args.Get(0).(*domain.RecipeAggregate)
 }
 
-func TestRetrieveRecipe(t *testing.T) {
+func TestRetrieveRecipeAggregate(t *testing.T) {
 	recipeUuid := uuid.New()
 	mockService := new(MockRecipeService)
 
@@ -29,11 +29,11 @@ func TestRetrieveRecipe(t *testing.T) {
 		ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
 		ctx.Params = append(ctx.Params, gin.Param{Key: "uuid", Value: recipeUuid.String()})
 		expectedResponse := domain.RecipeAggregate{
-			Recipe: domain.Recipe{RecipeUuid: recipeUuid},
+			Recipe: domain.Recipe{Uuid: recipeUuid},
 		}
 		mockService.On("Handle", recipeUuid).Return(&expectedResponse)
 		controller := NewRecipeController(mockService)
-		controller.RetrieveRecipe(ctx)
+		controller.RetrieveRecipeAggregate(ctx)
 
 		assert.Equal(t, 200, ctx.Writer.Status())
 	})
@@ -44,7 +44,7 @@ func TestRetrieveRecipe(t *testing.T) {
 		controller := NewRecipeController(mockService)
 
 		assert.Panics(t, func() {
-			controller.RetrieveRecipe(ctx)
+			controller.RetrieveRecipeAggregate(ctx)
 		})
 	})
 }

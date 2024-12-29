@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	"recipe-manager/internal/recipe-manager/application"
-	"recipe-manager/internal/recipe-manager/infrastructure"
-	"recipe-manager/internal/recipe-manager/infrastructure/repository"
+	"recipe-manager/internal/recipe-manager/infrastructure/http"
+	"recipe-manager/internal/recipe-manager/infrastructure/mysql"
 
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
@@ -24,12 +24,12 @@ func main() {
 }
 
 func makeRouter() *gin.Engine {
-	recipeController := infrastructure.NewRecipeController(
-		application.NewRecipeService(repository.NewRecipeRepository()),
+	recipeController := http.NewRecipeController(
+		application.NewRecipeService(mysql.NewMysqlRecipeRepository()),
 	)
 
 	router := gin.Default()
-	router.POST("/recipes/:uuid/aggregate", recipeController.RetrieveRecipe)
+	router.POST("/recipes/:uuid/aggregate", recipeController.RetrieveRecipeAggregate)
 	return router
 }
 

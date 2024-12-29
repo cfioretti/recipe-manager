@@ -1,4 +1,4 @@
-package infrastructure
+package http
 
 import (
 	"net/http"
@@ -21,7 +21,7 @@ func NewRecipeController(recipeHandler RecipeHandler) *RecipeController {
 	return &RecipeController{recipeHandler: recipeHandler}
 }
 
-func (rc *RecipeController) RetrieveRecipe(ctx *gin.Context) {
+func (rc *RecipeController) RetrieveRecipeAggregate(ctx *gin.Context) {
 	recipeUuid := uuid.MustParse(ctx.Param("uuid"))
 	result := rc.recipeHandler.Handle(recipeUuid)
 	ctx.JSON(http.StatusOK, result)
