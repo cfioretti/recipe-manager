@@ -12,8 +12,9 @@ func NewRecipeRepository() *RecipeRepository {
 	return &RecipeRepository{}
 }
 
-func (rr RecipeRepository) GetRecipe(recipeUuid uuid.UUID) *domain.Recipe {
-	return &domain.Recipe{
+func (rr RecipeRepository) GetRecipe(recipeUuid uuid.UUID) *domain.RecipeAggregate {
+	recipe := domain.Recipe{
 		RecipeUuid: recipeUuid,
 	}
+	return &domain.RecipeAggregate{Recipe: recipe}
 }

@@ -4,19 +4,19 @@ import "github.com/google/uuid"
 
 type Recipe struct {
 	RecipeUuid uuid.UUID
-	Total      TotalIngredients
-	Split      SplitIngredients
+	Dough      Dough
+	Topping    Topping
 	Steps      Steps
 }
 
-type TotalIngredients struct {
-	Dough   Dough
-	Topping Topping
+type RecipeAggregate struct {
+	Recipe
+	SplitIngredients SplitIngredients
 }
 
 type SplitIngredients struct {
-	Dough   []Dough
-	Topping []Topping
+	SplitDough   []Dough
+	SplitTopping []Topping
 }
 
 type Dough struct{}
