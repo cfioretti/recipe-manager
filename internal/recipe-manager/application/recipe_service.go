@@ -7,7 +7,7 @@ import (
 )
 
 type RecipeRepository interface {
-	GetRecipeByUuid(uuid.UUID) *domain.Recipe
+	GetRecipeByUuid(uuid.UUID) (*domain.Recipe, error)
 }
 
 type RecipeService struct {
@@ -19,6 +19,9 @@ func NewRecipeService(repository RecipeRepository) *RecipeService {
 }
 
 func (rs *RecipeService) Handle(recipeUuid uuid.UUID) *domain.RecipeAggregate {
-	recipe := rs.repository.GetRecipeByUuid(recipeUuid)
+	recipe, err := rs.repository.GetRecipeByUuid(recipeUuid)
+	if err != nil {
+		return nil
+	}
 	return &domain.RecipeAggregate{Recipe: *recipe}
 }
