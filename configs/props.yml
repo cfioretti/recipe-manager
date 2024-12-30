@@ -1,2 +1,9 @@
 server:
-  port: 8880
+  port: 8088
+
+database:
+  host: "localhost"
+  port: 13306
+  username: "user"
+  password: "pizzamaker"
+  dbName: "pizzamaker"
