@@ -34,7 +34,7 @@ func main() {
 
 func makeRouter(dB *sql.DB) *gin.Engine {
 	recipeController := http.NewRecipeController(
-		application.NewRecipeService(mysql.NewMysqlRecipeRepository(dB)),
+		application.NewRecipeService(mysql.NewMySqlRecipeRepository(dB)),
 	)
 
 	router := gin.Default()

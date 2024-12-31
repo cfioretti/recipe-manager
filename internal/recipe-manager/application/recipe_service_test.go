@@ -14,9 +14,9 @@ type MockRecipeRepository struct {
 	mock.Mock
 }
 
-func (m *MockRecipeRepository) GetRecipeByUuid(recipeUuid uuid.UUID) *domain.Recipe {
+func (m *MockRecipeRepository) GetRecipeByUuid(recipeUuid uuid.UUID) (*domain.Recipe, error) {
 	args := m.Called(recipeUuid)
-	return args.Get(0).(*domain.Recipe)
+	return args.Get(0).(*domain.Recipe), nil
 }
 
 func TestHandle(t *testing.T) {

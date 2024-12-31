@@ -9,15 +9,15 @@ import (
 	"github.com/pkg/errors"
 )
 
-type Repository struct {
+type MySqlRecipeRepository struct {
 	db *sql.DB
 }
 
-func NewMysqlRecipeRepository(db *sql.DB) *Repository {
-	return &Repository{db: db}
+func NewMySqlRecipeRepository(db *sql.DB) *MySqlRecipeRepository {
+	return &MySqlRecipeRepository{db: db}
 }
 
-func (rr Repository) GetRecipeByUuid(recipeUuid uuid.UUID) (*domain.Recipe, error) {
+func (rr MySqlRecipeRepository) GetRecipeByUuid(recipeUuid uuid.UUID) (*domain.Recipe, error) {
 	var response domain.Recipe
 
 	query := `
