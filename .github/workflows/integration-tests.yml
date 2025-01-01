@@ -1,0 +1,56 @@
+name: Integration Tests with Testcontainers
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  integration-tests:
+    runs-on: ubuntu-latest
+
+    services:
+      docker:
+        image: docker:20.10.7
+        options: --privileged
+        ports:
+          - 2375:2375
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: '1.19'
+
+      - name: Set up Docker for Testcontainers
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker.io
+
+      - name: Configure Docker to accept TCP connections
+        run: |
+          sudo systemctl start docker
+          sudo systemctl enable docker
+          sudo docker -H tcp://0.0.0.0:2375 info
+
+      - name: Install Go dependencies
+        run: |
+          go mod tidy
+
+      - name: Run unit tests
+        env:
+          DOCKER_HOST: tcp://127.0.0.1:2375
+        run: |
+          go test -v ./internal/...
+
+      - name: Run integration tests
+        env:
+          DOCKER_HOST: tcp://127.0.0.1:2375
+        run: |
+          go test -v ./test/...

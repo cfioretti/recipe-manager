@@ -1,0 +1,9 @@
+server:
+  port: 8088
+
+database:
+  host: "localhost"
+  port: 3307
+  username: "root"
+  password: "test"
+  databaseName: "test_db"
