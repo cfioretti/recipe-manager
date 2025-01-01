@@ -28,16 +28,26 @@ jobs:
         with:
           go-version: '1.19'
 
-      - name: Set up Docker for Testcontainers
+      - name: Remove any existing containerd package
+        run: |
+          sudo apt-get remove --purge -y containerd
+          sudo apt-get autoremove -y
+          sudo apt-get clean
+
+      - name: Update and install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y docker.io
+          sudo apt-get upgrade -y
+          sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+          curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+          sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+          sudo apt-get update
+          sudo apt-get install -y docker-ce docker-ce-cli containerd.io
 
-      - name: Configure Docker to accept TCP connections
+      - name: Verify Docker installation
         run: |
-          sudo systemctl start docker
-          sudo systemctl enable docker
-          sudo docker -H tcp://0.0.0.0:2375 info
+          docker --version
+          docker info
 
       - name: Install Go dependencies
         run: |
