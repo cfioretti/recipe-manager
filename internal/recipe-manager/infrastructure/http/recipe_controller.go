@@ -10,7 +10,7 @@ import (
 )
 
 type RecipeHandler interface {
-	Handle(uuid.UUID) *domain.RecipeAggregate
+	Handle(uuid.UUID) (*domain.RecipeAggregate, error)
 }
 
 type RecipeController struct {
@@ -23,6 +23,15 @@ func NewRecipeController(recipeHandler RecipeHandler) *RecipeController {
 
 func (rc *RecipeController) RetrieveRecipeAggregate(ctx *gin.Context) {
 	recipeUuid := uuid.MustParse(ctx.Param("uuid"))
-	result := rc.recipeHandler.Handle(recipeUuid)
-	ctx.JSON(http.StatusOK, result)
+	result, err := rc.recipeHandler.Handle(recipeUuid)
+	if err != nil {
+		ctx.AbortWithStatusJSON(
+			http.StatusBadRequest,
+			err,
+		)
+	}
+	ctx.JSON(
+		http.StatusOK,
+		result,
+	)
 }

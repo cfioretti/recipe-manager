@@ -1,6 +1,7 @@
 package http
 
 import (
+	"errors"
 	"net/http/httptest"
 	"testing"
 
@@ -16,14 +17,13 @@ type MockRecipeService struct {
 	mock.Mock
 }
 
-func (m *MockRecipeService) Handle(recipeUuid uuid.UUID) *domain.RecipeAggregate {
+func (m *MockRecipeService) Handle(recipeUuid uuid.UUID) (*domain.RecipeAggregate, error) {
 	args := m.Called(recipeUuid)
-	return args.Get(0).(*domain.RecipeAggregate)
+	return args.Get(0).(*domain.RecipeAggregate), args.Error(1)
 }
 
 func TestRetrieveRecipeAggregate(t *testing.T) {
 	recipeUuid := uuid.New()
-	mockService := new(MockRecipeService)
 
 	t.Run("HTTP Status 200 on Success", func(t *testing.T) {
 		ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
@@ -31,16 +31,35 @@ func TestRetrieveRecipeAggregate(t *testing.T) {
 		expectedResponse := domain.RecipeAggregate{
 			Recipe: domain.Recipe{Uuid: recipeUuid},
 		}
-		mockService.On("Handle", recipeUuid).Return(&expectedResponse)
+		mockService := new(MockRecipeService)
+		mockService.On("Handle", recipeUuid).Return(&expectedResponse, nil)
 		controller := NewRecipeController(mockService)
+
 		controller.RetrieveRecipeAggregate(ctx)
 
 		assert.Equal(t, 200, ctx.Writer.Status())
 	})
 
+	t.Run("HTTP Status 400 on Failure", func(t *testing.T) {
+		ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+		ctx.Params = append(ctx.Params, gin.Param{Key: "uuid", Value: recipeUuid.String()})
+		expectedResponse := domain.RecipeAggregate{
+			Recipe: domain.Recipe{Uuid: recipeUuid},
+		}
+		mockService := new(MockRecipeService)
+		mockService.On("Handle", recipeUuid).Return(&expectedResponse, errors.New("ERROR"))
+		controller := NewRecipeController(mockService)
+
+		controller.RetrieveRecipeAggregate(ctx)
+
+		assert.Equal(t, 400, ctx.Writer.Status())
+	})
+
 	t.Run("Panic with wrong UUID", func(t *testing.T) {
 		ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
 		ctx.Params = append(ctx.Params, gin.Param{Key: "uuid", Value: "WRONG UUID"})
+		mockService := new(MockRecipeService)
+
 		controller := NewRecipeController(mockService)
 
 		assert.Panics(t, func() {
