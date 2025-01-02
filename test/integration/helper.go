@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"testing"
+	"time"
 
 	"github.com/docker/go-connections/nat"
 	_ "github.com/go-sql-driver/mysql"
@@ -32,16 +33,18 @@ type TestDatabase struct {
 func SetupTestDb(t *testing.T) (*TestDatabase, error) {
 	ctx := context.Background()
 
+	ConfigureDockerForTests(t)
+
 	req := testcontainers.ContainerRequest{
 		Image:        "mysql:8.0",
-		ExposedPorts: []string{"0/tcp"},
+		ExposedPorts: []string{"3306/tcp"},
 		Env: map[string]string{
 			"MYSQL_ROOT_PASSWORD": "test",
 			"MYSQL_DATABASE":      "test_db",
 		},
-		WaitingFor: wait.ForSQL("0/tcp", "mysql", func(host string, port nat.Port) string {
+		WaitingFor: wait.ForSQL("3306/tcp", "mysql", func(host string, port nat.Port) string {
 			return fmt.Sprintf("root:test@tcp(%s:%s)/%s", host, port.Port(), "test_db")
-		}),
+		}).WithStartupTimeout(2 * time.Minute),
 	}
 
 	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
@@ -52,7 +55,7 @@ func SetupTestDb(t *testing.T) (*TestDatabase, error) {
 		return nil, fmt.Errorf("failed to start container: %v", err)
 	}
 
-	port, err := container.MappedPort(ctx, "0/tcp")
+	port, err := container.MappedPort(ctx, "3306/tcp")
 	if err != nil {
 		return nil, fmt.Errorf("failed to get container port: %v", err)
 	}
@@ -72,6 +75,15 @@ func SetupTestDb(t *testing.T) (*TestDatabase, error) {
 		DB:        db,
 		Port:      port.Port(),
 	}, nil
+}
+
+func ConfigureDockerForTests(t *testing.T) {
+	dockerHost := viper.GetString("docker.socketPath")
+	if dockerHost == "" {
+		dockerHost = "/var/run/docker.sock"
+	}
+	t.Setenv("DOCKER_HOST", "unix://"+dockerHost)
+	t.Setenv("TESTCONTAINERS_RYUK_DISABLED", "true")
 }
 
 func runMigrations(dsn string) error {
