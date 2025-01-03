@@ -22,13 +22,13 @@ func main() {
 	config := configs.NewDBConfig()
 	db, err := newDBConnection(config)
 	if err != nil {
-		panic(err)
+		panic(fmt.Errorf("failed to connect to database: %v", err))
 	}
 
 	router := makeRouter(db)
 	port := viper.GetInt("server.port")
 	if err := router.Run(fmt.Sprintf(":%d", port)); err != nil {
-		panic("failed to start server")
+		panic(fmt.Errorf("failed to start server: %v", err))
 	}
 }
 
