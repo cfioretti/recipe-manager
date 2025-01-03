@@ -2,6 +2,7 @@ package integration
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
 
 	"recipe-manager/internal/recipe-manager/application"
@@ -23,15 +24,19 @@ func TestRecipeIntegration(t *testing.T) {
 	service := application.NewRecipeService(mysql.NewMySqlRecipeRepository(db.DB))
 
 	t.Run("retrieve RecipeAggregate successfully", func(t *testing.T) {
+		dough := domain.Dough{Total: 100, Flour: 60, Water: 30, Salt: 5, EvoOil: 3, Yeast: 2}
+		doughJSON, err := json.Marshal(dough)
 		testRecipe := &domain.Recipe{
-			Uuid:   uuid.New(),
-			Name:   "Test Recipe",
-			Author: "Test Author",
+			Uuid:        uuid.New(),
+			Name:        "Test Recipe",
+			Description: "Test Recipe Description",
+			Author:      "Test Author",
+			Dough:       dough,
 		}
 
 		_, err = db.DB.Exec(`DELETE FROM recipes WHERE true`)
-		query := `INSERT INTO recipes (uuid, name, author) VALUES (?, ?, ?)`
-		_, err = db.DB.Exec(query, testRecipe.Uuid, testRecipe.Name, testRecipe.Author)
+		query := `INSERT INTO recipes (uuid, name, description, author, dough) VALUES (?, ?, ?, ?, ?)`
+		_, err = db.DB.Exec(query, testRecipe.Uuid, testRecipe.Name, testRecipe.Description, testRecipe.Author, string(doughJSON))
 		if err != nil {
 			t.Fatal(err)
 		}
