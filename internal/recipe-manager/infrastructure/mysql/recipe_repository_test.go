@@ -2,6 +2,7 @@ package mysql
 
 import (
 	"database/sql"
+	"encoding/json"
 	"testing"
 
 	"recipe-manager/internal/recipe-manager/domain"
@@ -20,15 +21,22 @@ func TestGetRecipeByUuid(t *testing.T) {
 	newUuid := uuid.New()
 
 	t.Run("should return recipe successfully when found", func(t *testing.T) {
+		dough := domain.Dough{Total: 100, Flour: 60, Water: 30, Salt: 5, EvoOil: 3, Yeast: 2}
 		expectedRecipe := &domain.Recipe{
-			Id:     1,
-			Uuid:   newUuid,
-			Name:   "Test Recipe",
-			Author: "Test Author",
+			Id:          1,
+			Uuid:        newUuid,
+			Name:        "Test Recipe",
+			Description: "Test Recipe Description",
+			Author:      "Test Author",
+			Dough:       dough,
 		}
-		rows := sqlmock.NewRows([]string{"id", "uuid", "name", "author"}).
-			AddRow(expectedRecipe.Id, expectedRecipe.Uuid, expectedRecipe.Name, expectedRecipe.Author)
-		mock.ExpectQuery("SELECT (.+) FROM recipes").
+		doughJSON, err := json.Marshal(dough)
+		assert.NoError(t, err)
+
+		rows := sqlmock.NewRows([]string{"id", "uuid", "name", "description", "author", "dough"}).
+			AddRow(expectedRecipe.Id, expectedRecipe.Uuid, expectedRecipe.Name, expectedRecipe.Description,
+				expectedRecipe.Author, string(doughJSON))
+		mock.ExpectQuery(`SELECT id, uuid, name, description, author, dough FROM recipes WHERE uuid = ?`).
 			WithArgs(newUuid).
 			WillReturnRows(rows)
 
@@ -40,7 +48,7 @@ func TestGetRecipeByUuid(t *testing.T) {
 	})
 
 	t.Run("should return empty recipe when not found", func(t *testing.T) {
-		mock.ExpectQuery("SELECT (.+) FROM recipes").
+		mock.ExpectQuery(`SELECT id, uuid, name, description, author, dough FROM recipes WHERE uuid = ?`).
 			WithArgs(newUuid).
 			WillReturnError(sql.ErrNoRows)
 
@@ -52,7 +60,7 @@ func TestGetRecipeByUuid(t *testing.T) {
 	})
 
 	t.Run("should return error on DB failure", func(t *testing.T) {
-		mock.ExpectQuery("SELECT (.+) FROM recipes").
+		mock.ExpectQuery(`SELECT id, uuid, name, description, author, dough FROM recipes WHERE uuid = ?`).
 			WithArgs(newUuid).
 			WillReturnError(sql.ErrConnDone)
 
