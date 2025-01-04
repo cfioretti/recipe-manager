@@ -13,16 +13,31 @@ type RecipeHandler interface {
 	Handle(uuid.UUID) (*domain.RecipeAggregate, error)
 }
 
-type RecipeController struct {
-	recipeHandler RecipeHandler
+type Calculator interface {
+	TotalPansWeight(gin.Params) (int, error)
 }
 
-func NewRecipeController(recipeHandler RecipeHandler) *RecipeController {
-	return &RecipeController{recipeHandler: recipeHandler}
+type RecipeController struct {
+	recipeHandler RecipeHandler
+	calculator    Calculator
+}
+
+func NewRecipeController(recipeHandler RecipeHandler, calculator Calculator) *RecipeController {
+	return &RecipeController{
+		recipeHandler: recipeHandler,
+		calculator:    calculator,
+	}
 }
 
 func (rc *RecipeController) RetrieveRecipeAggregate(ctx *gin.Context) {
 	recipeUuid := uuid.MustParse(ctx.Param("uuid"))
+	_, validationError := rc.calculator.TotalPansWeight(ctx.Params)
+	if validationError != nil {
+		ctx.AbortWithStatusJSON(
+			http.StatusBadRequest,
+			validationError.Error(),
+		)
+	}
 	result, err := rc.recipeHandler.Handle(recipeUuid)
 	if err != nil {
 		ctx.AbortWithStatusJSON(

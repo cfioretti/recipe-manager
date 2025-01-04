@@ -7,7 +7,8 @@ import (
 	"strings"
 
 	"recipe-manager/configs"
-	"recipe-manager/internal/recipe-manager/application"
+	calculatorappl "recipe-manager/internal/dough-calculator/application"
+	recipeappl "recipe-manager/internal/recipe-manager/application"
 	"recipe-manager/internal/recipe-manager/infrastructure/http"
 	"recipe-manager/internal/recipe-manager/infrastructure/mysql"
 	"recipe-manager/internal/recipe-manager/infrastructure/mysql/migrations"
@@ -34,7 +35,8 @@ func main() {
 
 func makeRouter(dB *sql.DB) *gin.Engine {
 	recipeController := http.NewRecipeController(
-		application.NewRecipeService(mysql.NewMySqlRecipeRepository(dB)),
+		recipeappl.NewRecipeService(mysql.NewMySqlRecipeRepository(dB)),
+		calculatorappl.NewDoughCalculatorService(),
 	)
 
 	router := gin.Default()
