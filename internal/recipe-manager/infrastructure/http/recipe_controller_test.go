@@ -52,7 +52,7 @@ func TestRetrieveRecipeAggregate(t *testing.T) {
 
 		controller.RetrieveRecipeAggregate(ctx)
 
-		assert.Equal(t, 400, ctx.Writer.Status())
+		assert.Equal(t, 500, ctx.Writer.Status())
 	})
 
 	t.Run("Panic with wrong UUID", func(t *testing.T) {

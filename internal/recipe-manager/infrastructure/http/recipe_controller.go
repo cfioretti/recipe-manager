@@ -26,8 +26,8 @@ func (rc *RecipeController) RetrieveRecipeAggregate(ctx *gin.Context) {
 	result, err := rc.recipeHandler.Handle(recipeUuid)
 	if err != nil {
 		ctx.AbortWithStatusJSON(
-			http.StatusBadRequest,
-			err,
+			http.StatusInternalServerError,
+			err.Error(),
 		)
 	}
 	ctx.JSON(
