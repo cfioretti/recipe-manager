@@ -22,33 +22,64 @@ func (m *MockRecipeService) Handle(recipeUuid uuid.UUID) (*domain.RecipeAggregat
 	return args.Get(0).(*domain.RecipeAggregate), args.Error(1)
 }
 
+type MockCalculatorService struct {
+	mock.Mock
+}
+
+func (m *MockCalculatorService) TotalPansWeight(params gin.Params) (int, error) {
+	args := m.Called(params)
+	return args.Get(0).(int), args.Error(1)
+}
+
 func TestRetrieveRecipeAggregate(t *testing.T) {
 	recipeUuid := uuid.New()
 
-	t.Run("HTTP Status 200 on Success", func(t *testing.T) {
+	t.Run("HTTP Status 200 on success", func(t *testing.T) {
 		ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
 		ctx.Params = append(ctx.Params, gin.Param{Key: "uuid", Value: recipeUuid.String()})
 		expectedResponse := domain.RecipeAggregate{
 			Recipe: domain.Recipe{Uuid: recipeUuid},
 		}
-		mockService := new(MockRecipeService)
-		mockService.On("Handle", recipeUuid).Return(&expectedResponse, nil)
-		controller := NewRecipeController(mockService)
+		mockRecipeService := new(MockRecipeService)
+		mockRecipeService.On("Handle", recipeUuid).Return(&expectedResponse, nil)
+		mockCalculatorService := new(MockCalculatorService)
+		mockCalculatorService.On("TotalPansWeight", ctx.Params).Return(1, nil)
+		controller := NewRecipeController(mockRecipeService, mockCalculatorService)
 
 		controller.RetrieveRecipeAggregate(ctx)
 
 		assert.Equal(t, 200, ctx.Writer.Status())
 	})
 
-	t.Run("HTTP Status 400 on Failure", func(t *testing.T) {
+	t.Run("HTTP Status 400 on validation error", func(t *testing.T) {
+		ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
+		ctx.Params = append(ctx.Params, gin.Param{Key: "uuid", Value: recipeUuid.String()})
+		ctx.Params = append(ctx.Params, gin.Param{Key: "pans", Value: "WRONG BODY"})
+		expectedResponse := domain.RecipeAggregate{
+			Recipe: domain.Recipe{Uuid: recipeUuid},
+		}
+		mockRecipeService := new(MockRecipeService)
+		mockRecipeService.On("Handle", recipeUuid).Return(&expectedResponse, nil)
+		mockCalculatorService := new(MockCalculatorService)
+		mockCalculatorService.On("TotalPansWeight", ctx.Params).Return(1, errors.New("ERROR"))
+		controller := NewRecipeController(mockRecipeService, mockCalculatorService)
+
+		controller.RetrieveRecipeAggregate(ctx)
+
+		assert.Equal(t, 400, ctx.Writer.Status())
+	})
+
+	t.Run("HTTP Status 500 on dB failure", func(t *testing.T) {
 		ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
 		ctx.Params = append(ctx.Params, gin.Param{Key: "uuid", Value: recipeUuid.String()})
 		expectedResponse := domain.RecipeAggregate{
 			Recipe: domain.Recipe{Uuid: recipeUuid},
 		}
-		mockService := new(MockRecipeService)
-		mockService.On("Handle", recipeUuid).Return(&expectedResponse, errors.New("ERROR"))
-		controller := NewRecipeController(mockService)
+		mockRecipeService := new(MockRecipeService)
+		mockRecipeService.On("Handle", recipeUuid).Return(&expectedResponse, errors.New("ERROR"))
+		mockCalculatorService := new(MockCalculatorService)
+		mockCalculatorService.On("TotalPansWeight", ctx.Params).Return(1, nil)
+		controller := NewRecipeController(mockRecipeService, mockCalculatorService)
 
 		controller.RetrieveRecipeAggregate(ctx)
 
@@ -58,9 +89,10 @@ func TestRetrieveRecipeAggregate(t *testing.T) {
 	t.Run("Panic with wrong UUID", func(t *testing.T) {
 		ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
 		ctx.Params = append(ctx.Params, gin.Param{Key: "uuid", Value: "WRONG UUID"})
-		mockService := new(MockRecipeService)
+		mockRecipeService := new(MockRecipeService)
+		mockCalculatorService := new(MockCalculatorService)
 
-		controller := NewRecipeController(mockService)
+		controller := NewRecipeController(mockRecipeService, mockCalculatorService)
 
 		assert.Panics(t, func() {
 			controller.RetrieveRecipeAggregate(ctx)
