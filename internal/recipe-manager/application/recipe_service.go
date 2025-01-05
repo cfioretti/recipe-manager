@@ -1,7 +1,7 @@
 package application
 
 import (
-	"recipe-manager/internal/recipe-manager/domain"
+	"github.com/cfioretti/recipe-manager/internal/recipe-manager/domain"
 
 	"github.com/google/uuid"
 )

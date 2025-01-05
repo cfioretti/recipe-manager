@@ -6,12 +6,12 @@ import (
 	"os"
 	"strings"
 
-	"recipe-manager/configs"
-	calculatorappl "recipe-manager/internal/dough-calculator/application"
-	recipeappl "recipe-manager/internal/recipe-manager/application"
-	"recipe-manager/internal/recipe-manager/infrastructure/http"
-	"recipe-manager/internal/recipe-manager/infrastructure/mysql"
-	"recipe-manager/internal/recipe-manager/infrastructure/mysql/migrations"
+	"github.com/cfioretti/recipe-manager/configs"
+	calculatorappl "github.com/cfioretti/recipe-manager/internal/dough-calculator/application"
+	recipeappl "github.com/cfioretti/recipe-manager/internal/recipe-manager/application"
+	"github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/http"
+	"github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/mysql"
+	"github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/mysql/migrations"
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"

@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 
-	"recipe-manager/internal/recipe-manager/domain"
+	"github.com/cfioretti/recipe-manager/internal/recipe-manager/domain"
 
 	"github.com/google/uuid"
 	"github.com/pkg/errors"

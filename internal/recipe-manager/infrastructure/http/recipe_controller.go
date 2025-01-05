@@ -1,9 +1,11 @@
 package http
 
 import (
+	"io"
 	"net/http"
 
-	"recipe-manager/internal/recipe-manager/domain"
+	calculatordomain "github.com/cfioretti/recipe-manager/internal/dough-calculator/domain"
+	"github.com/cfioretti/recipe-manager/internal/recipe-manager/domain"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -14,7 +16,7 @@ type RecipeHandler interface {
 }
 
 type Calculator interface {
-	TotalPansWeight(gin.Params) (int, error)
+	TotalPansWeight([]byte) (*calculatordomain.Pans, error)
 }
 
 type RecipeController struct {
@@ -31,22 +33,30 @@ func NewRecipeController(recipeHandler RecipeHandler, calculator Calculator) *Re
 
 func (rc *RecipeController) RetrieveRecipeAggregate(ctx *gin.Context) {
 	recipeUuid := uuid.MustParse(ctx.Param("uuid"))
-	_, validationError := rc.calculator.TotalPansWeight(ctx.Params)
-	if validationError != nil {
-		ctx.AbortWithStatusJSON(
-			http.StatusBadRequest,
-			validationError.Error(),
-		)
-	}
-	result, err := rc.recipeHandler.Handle(recipeUuid)
+	body, err := io.ReadAll(ctx.Request.Body)
 	if err != nil {
 		ctx.AbortWithStatusJSON(
 			http.StatusInternalServerError,
 			err.Error(),
 		)
 	}
+	pans, validationError := rc.calculator.TotalPansWeight(body)
+	if validationError != nil {
+		ctx.AbortWithStatusJSON(
+			http.StatusBadRequest,
+			validationError.Error(),
+		)
+	}
+	recipe, err := rc.recipeHandler.Handle(recipeUuid)
+	if err != nil {
+		ctx.AbortWithStatusJSON(
+			http.StatusInternalServerError,
+			err.Error(),
+		)
+	}
+	recipe.Dough.Total = pans.Total
 	ctx.JSON(
 		http.StatusOK,
-		result,
+		recipe,
 	)
 }
