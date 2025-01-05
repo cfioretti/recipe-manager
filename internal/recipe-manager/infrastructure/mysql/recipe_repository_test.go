@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"recipe-manager/internal/recipe-manager/domain"
+	"github.com/cfioretti/recipe-manager/internal/recipe-manager/domain"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/google/uuid"

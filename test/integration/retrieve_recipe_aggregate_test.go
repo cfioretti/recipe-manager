@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"testing"
 
-	"recipe-manager/internal/recipe-manager/application"
-	"recipe-manager/internal/recipe-manager/domain"
-	"recipe-manager/internal/recipe-manager/infrastructure/mysql"
+	"github.com/cfioretti/recipe-manager/internal/recipe-manager/application"
+	"github.com/cfioretti/recipe-manager/internal/recipe-manager/domain"
+	"github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/mysql"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"

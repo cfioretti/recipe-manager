@@ -1,4 +1,4 @@
-module recipe-manager
+module github.com/cfioretti/recipe-manager
 
 go 1.23
 

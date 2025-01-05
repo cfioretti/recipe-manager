@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"recipe-manager/internal/recipe-manager/domain"
+	"github.com/cfioretti/recipe-manager/internal/recipe-manager/domain"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
