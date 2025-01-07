@@ -44,21 +44,21 @@ func TestPanStrategies(t *testing.T) {
 			name:     "round pan",
 			strategy: &RoundPanStrategy{},
 			measures: map[string]interface{}{"diameter": "20"},
-			wantArea: 314.1592653589793,
+			wantArea: 157.07963267948966,
 			wantErr:  false,
 		},
 		{
 			name:     "square pan",
 			strategy: &SquarePanStrategy{},
 			measures: map[string]interface{}{"edge": "20"},
-			wantArea: 400,
+			wantArea: 200,
 			wantErr:  false,
 		},
 		{
 			name:     "rectangular pan",
 			strategy: &RectangularPanStrategy{},
 			measures: map[string]interface{}{"width": "20", "length": "30"},
-			wantArea: 600,
+			wantArea: 300,
 			wantErr:  false,
 		},
 		{
@@ -77,7 +77,7 @@ func TestPanStrategies(t *testing.T) {
 				return
 			}
 			assert.NoError(t, err)
-			assert.Equal(t, tt.wantArea, pan.Area)
+			assert.Equal(t, tt.wantArea, pan.DoughWeight)
 		})
 	}
 }

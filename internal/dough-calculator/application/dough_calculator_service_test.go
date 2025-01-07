@@ -1,16 +1,18 @@
 package application
 
 import (
+	"math"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func TestTotalPansWeight(t *testing.T) {
+func TestTotalDoughWeightByPans(t *testing.T) {
 	tests := []struct {
-		name    string
-		input   string
-		wantErr bool
+		name     string
+		input    string
+		wantArea float64
+		wantErr  bool
 	}{
 		{
 			name: "success with multiple pans",
@@ -20,7 +22,8 @@ func TestTotalPansWeight(t *testing.T) {
                     {"shape": "square", "measures": {"edge": "20"}}
                 ]
             }`,
-			wantErr: false,
+			wantArea: (math.Pi*100 + 400) / 2,
+			wantErr:  false,
 		},
 		{
 			name: "invalid shape",
@@ -53,7 +56,7 @@ func TestTotalPansWeight(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result, err := calculator.TotalPansWeight([]byte(tt.input))
+			result, err := calculator.TotalDoughWeightByPans([]byte(tt.input))
 
 			if tt.wantErr {
 				assert.Error(t, err)
@@ -62,6 +65,7 @@ func TestTotalPansWeight(t *testing.T) {
 
 			assert.NoError(t, err)
 			assert.NotNil(t, result)
+			assert.InDelta(t, tt.wantArea, result.TotalDoughWeight, 0.001)
 		})
 	}
 }

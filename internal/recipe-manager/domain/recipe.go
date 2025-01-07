@@ -24,12 +24,12 @@ type SplitIngredients struct {
 }
 
 type Dough struct {
-	Total  float64 `json:"total"`
-	Flour  float64 `json:"flour"`
-	Water  float64 `json:"water"`
-	Salt   float64 `json:"salt"`
-	EvoOil float64 `json:"evoOil"`
-	Yeast  float64 `json:"yeast"`
+	PercentVariation float64 `json:"percentVariation"`
+	Flour            float64 `json:"flour"`
+	Water            float64 `json:"water"`
+	Salt             float64 `json:"salt"`
+	EvoOil           float64 `json:"evoOil"`
+	Yeast            float64 `json:"yeast"`
 }
 
 type Topping struct{}

@@ -21,7 +21,7 @@ func TestGetRecipeByUuid(t *testing.T) {
 	newUuid := uuid.New()
 
 	t.Run("should return recipe successfully when found", func(t *testing.T) {
-		dough := domain.Dough{Total: 100, Flour: 60, Water: 30, Salt: 5, EvoOil: 3, Yeast: 2}
+		dough := domain.Dough{PercentVariation: -10, Flour: 60, Water: 30, Salt: 5, EvoOil: 3, Yeast: 2}
 		expectedRecipe := &domain.Recipe{
 			Id:          1,
 			Uuid:        newUuid,

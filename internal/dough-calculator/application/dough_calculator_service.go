@@ -23,7 +23,7 @@ type PanInput struct {
 	Measures map[string]interface{} `json:"measures"`
 }
 
-func (dc DoughCalculatorService) TotalPansWeight(body []byte) (*domain.Pans, error) {
+func (dc DoughCalculatorService) TotalDoughWeightByPans(body []byte) (*domain.Pans, error) {
 	var input Input
 	if err := json.Unmarshal(body, &input); err != nil {
 		return nil, errors.New("invalid JSON format")
@@ -42,7 +42,7 @@ func (dc DoughCalculatorService) TotalPansWeight(body []byte) (*domain.Pans, err
 		}
 
 		result.Pans = append(result.Pans, pan)
-		result.Total += pan.Area
+		result.TotalDoughWeight += pan.DoughWeight
 	}
 	return &result, nil
 }

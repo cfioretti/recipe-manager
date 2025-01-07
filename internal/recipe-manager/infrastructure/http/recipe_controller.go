@@ -16,7 +16,7 @@ type RecipeHandler interface {
 }
 
 type Calculator interface {
-	TotalPansWeight([]byte) (*calculatordomain.Pans, error)
+	TotalDoughWeightByPans([]byte) (*calculatordomain.Pans, error)
 }
 
 type RecipeController struct {
@@ -40,7 +40,7 @@ func (rc *RecipeController) RetrieveRecipeAggregate(ctx *gin.Context) {
 			err.Error(),
 		)
 	}
-	_, validationError := rc.calculator.TotalPansWeight(body)
+	_, validationError := rc.calculator.TotalDoughWeightByPans(body)
 	if validationError != nil {
 		ctx.AbortWithStatusJSON(
 			http.StatusBadRequest,

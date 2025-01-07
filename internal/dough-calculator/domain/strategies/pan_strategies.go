@@ -44,7 +44,7 @@ func (s *RoundPanStrategy) Calculate(measures map[string]interface{}) (domain.Pa
 		Measures: domain.Measures{
 			Diameter: &diameter,
 		},
-		Area: area,
+		DoughWeight: area / 2,
 	}, nil
 }
 
@@ -61,7 +61,7 @@ func (s *SquarePanStrategy) Calculate(measures map[string]interface{}) (domain.P
 		Measures: domain.Measures{
 			Edge: &edge,
 		},
-		Area: area,
+		DoughWeight: area / 2,
 	}, nil
 }
 
@@ -80,6 +80,6 @@ func (s *RectangularPanStrategy) Calculate(measures map[string]interface{}) (dom
 			Width:  &width,
 			Length: &length,
 		},
-		Area: area,
+		DoughWeight: area / 2,
 	}, nil
 }

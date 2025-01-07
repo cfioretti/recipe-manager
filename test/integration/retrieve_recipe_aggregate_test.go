@@ -24,7 +24,7 @@ func TestRecipeIntegration(t *testing.T) {
 	service := application.NewRecipeService(mysql.NewMySqlRecipeRepository(db.DB))
 
 	t.Run("retrieve RecipeAggregate successfully", func(t *testing.T) {
-		dough := domain.Dough{Total: 100, Flour: 60, Water: 30, Salt: 5, EvoOil: 3, Yeast: 2}
+		dough := domain.Dough{PercentVariation: -10, Flour: 60, Water: 30, Salt: 5, EvoOil: 3, Yeast: 2}
 		doughJSON, err := json.Marshal(dough)
 		testRecipe := &domain.Recipe{
 			Uuid:        uuid.New(),

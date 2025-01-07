@@ -29,7 +29,7 @@ type MockCalculatorService struct {
 	mock.Mock
 }
 
-func (m *MockCalculatorService) TotalPansWeight(params []byte) (*calculatordomain.Pans, error) {
+func (m *MockCalculatorService) TotalDoughWeightByPans(params []byte) (*calculatordomain.Pans, error) {
 	args := m.Called(params)
 	return args.Get(0).(*calculatordomain.Pans), args.Error(1)
 }
@@ -53,7 +53,7 @@ func TestRetrieveRecipeAggregate(t *testing.T) {
 		mockRecipeService.On("Handle", recipeUuid).Return(&expectedResponse, nil)
 		pans := calculatordomain.Pans{}
 		mockCalculatorService := new(MockCalculatorService)
-		mockCalculatorService.On("TotalPansWeight", mock.Anything).Return(&pans, nil)
+		mockCalculatorService.On("TotalDoughWeightByPans", mock.Anything).Return(&pans, nil)
 
 		controller := NewRecipeController(mockRecipeService, mockCalculatorService)
 		controller.RetrieveRecipeAggregate(ctx)
@@ -77,7 +77,7 @@ func TestRetrieveRecipeAggregate(t *testing.T) {
 		mockRecipeService.On("Handle", recipeUuid).Return(&expectedResponse, nil)
 		pans := calculatordomain.Pans{}
 		mockCalculatorService := new(MockCalculatorService)
-		mockCalculatorService.On("TotalPansWeight", mock.Anything).Return(&pans, errors.New("ERROR"))
+		mockCalculatorService.On("TotalDoughWeightByPans", mock.Anything).Return(&pans, errors.New("ERROR"))
 
 		controller := NewRecipeController(mockRecipeService, mockCalculatorService)
 		controller.RetrieveRecipeAggregate(ctx)
@@ -101,7 +101,7 @@ func TestRetrieveRecipeAggregate(t *testing.T) {
 		mockRecipeService.On("Handle", recipeUuid).Return(&expectedResponse, errors.New("ERROR"))
 		pans := calculatordomain.Pans{}
 		mockCalculatorService := new(MockCalculatorService)
-		mockCalculatorService.On("TotalPansWeight", mock.Anything).Return(&pans, nil)
+		mockCalculatorService.On("TotalDoughWeightByPans", mock.Anything).Return(&pans, nil)
 
 		controller := NewRecipeController(mockRecipeService, mockCalculatorService)
 		controller.RetrieveRecipeAggregate(ctx)
