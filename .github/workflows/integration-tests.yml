@@ -1,66 +1,38 @@
-name: Integration Tests with Testcontainers
+name: Build and Tests
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   pull_request:
-    branches:
-      - main
+    branches: [main]
 
 jobs:
-  integration-tests:
+  test:
     runs-on: ubuntu-latest
-
-    services:
-      docker:
-        image: docker:20.10.7
-        options: --privileged
-        ports:
-          - 2375:2375
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Set up Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v4
         with:
           go-version: '1.23'
+          cache: true
 
-      - name: Remove any existing containerd package
-        run: |
-          sudo apt-get remove --purge -y containerd
-          sudo apt-get autoremove -y
-          sudo apt-get clean
+      - name: Setup Docker
+        uses: docker/setup-buildx-action@v3
+        with:
+          version: latest
 
-      - name: Update and install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get upgrade -y
-          sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
-          curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-          sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-          sudo apt-get update
-          sudo apt-get install -y docker-ce docker-ce-cli containerd.io
-
-      - name: Verify Docker installation
-        run: |
-          docker --version
-          docker info
-
-      - name: Install Go dependencies
-        run: |
-          go mod tidy
+      - name: Install dependencies
+        run: go mod tidy
 
       - name: Run unit tests
-        env:
-          DOCKER_HOST: tcp://127.0.0.1:2375
-        run: |
-          go test -v ./internal/...
+        run: go test -v ./internal/...
 
       - name: Run integration tests
+        run: go test -v ./test/...
         env:
-          DOCKER_HOST: tcp://127.0.0.1:2375
-        run: |
-          go test -v ./test/...
+          TESTCONTAINERS_RYUK_DISABLED: true
+          DOCKER_HOST: unix:///var/run/docker.sock
