@@ -40,7 +40,7 @@ func (rc *RecipeController) RetrieveRecipeAggregate(ctx *gin.Context) {
 			err.Error(),
 		)
 	}
-	pans, validationError := rc.calculator.TotalPansWeight(body)
+	_, validationError := rc.calculator.TotalPansWeight(body)
 	if validationError != nil {
 		ctx.AbortWithStatusJSON(
 			http.StatusBadRequest,
@@ -54,7 +54,6 @@ func (rc *RecipeController) RetrieveRecipeAggregate(ctx *gin.Context) {
 			err.Error(),
 		)
 	}
-	recipe.Dough.Total = pans.Total
 	ctx.JSON(
 		http.StatusOK,
 		recipe,
