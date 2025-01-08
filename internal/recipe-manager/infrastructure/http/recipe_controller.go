@@ -54,11 +54,10 @@ func (rc *RecipeController) RetrieveRecipeAggregate(ctx *gin.Context) {
 	if handlerErr != nil {
 		rc.abortWithStatus400(ctx, handlerErr)
 	}
-	_, balancerError := rc.balancer.Balance(*recipe, *pans)
+	response, balancerError := rc.balancer.Balance(*recipe, *pans)
 	if balancerError != nil {
 		rc.abortWithStatus400(ctx, balancerError)
 	}
-	response := domain.RecipeAggregate{Recipe: *recipe}
 	ctx.JSON(
 		http.StatusOK,
 		&response,
