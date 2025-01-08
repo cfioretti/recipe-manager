@@ -73,9 +73,11 @@ func TestBalance(t *testing.T) {
 		},
 	}
 
+	balancer := NewDoughBalancerService()
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result, err := Balance(tt.recipe, tt.pans)
+			result, err := balancer.Balance(tt.recipe, tt.pans)
 
 			if tt.wantErr {
 				assert.Error(t, err)
@@ -86,7 +88,6 @@ func TestBalance(t *testing.T) {
 			assert.NoError(t, err)
 			assert.NotNil(t, result)
 
-			// Verifica che il peso totale sia corretto
 			totalWeight := result.Dough.Flour +
 				result.Dough.Water +
 				result.Dough.Salt +
@@ -95,7 +96,6 @@ func TestBalance(t *testing.T) {
 
 			assert.InDelta(t, tt.pans.TotalDoughWeight, totalWeight, 0.1)
 
-			// Verifica che le proporzioni siano mantenute
 			assert.InDelta(t, tt.recipe.Dough.Flour/100*tt.pans.TotalDoughWeight, result.Dough.Flour, 0.1)
 			assert.InDelta(t, tt.recipe.Dough.Water/100*tt.pans.TotalDoughWeight, result.Dough.Water, 0.1)
 		})
