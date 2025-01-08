@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	"github.com/cfioretti/recipe-manager/configs"
-	calculatorappl "github.com/cfioretti/recipe-manager/internal/dough-calculator/application"
-	recipeappl "github.com/cfioretti/recipe-manager/internal/recipe-manager/application"
+	calculatorapplication "github.com/cfioretti/recipe-manager/internal/ingredients-balancer/application"
+	recipeapplication "github.com/cfioretti/recipe-manager/internal/recipe-manager/application"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/http"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/mysql"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/mysql/migrations"
@@ -35,8 +35,8 @@ func main() {
 
 func makeRouter(dB *sql.DB) *gin.Engine {
 	recipeController := http.NewRecipeController(
-		recipeappl.NewRecipeService(mysql.NewMySqlRecipeRepository(dB)),
-		calculatorappl.NewDoughCalculatorService(),
+		recipeapplication.NewRecipeService(mysql.NewMySqlRecipeRepository(dB)),
+		calculatorapplication.NewDoughCalculatorService(),
 	)
 
 	router := gin.Default()

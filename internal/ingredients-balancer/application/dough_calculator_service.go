@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/cfioretti/recipe-manager/internal/dough-calculator/domain"
-	"github.com/cfioretti/recipe-manager/internal/dough-calculator/domain/strategies"
+	"github.com/cfioretti/recipe-manager/internal/ingredients-balancer/domain"
+	"github.com/cfioretti/recipe-manager/internal/ingredients-balancer/domain/strategies"
 )
 
 type DoughCalculatorService struct{}

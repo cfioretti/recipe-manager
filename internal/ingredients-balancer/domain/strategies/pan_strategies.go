@@ -6,7 +6,7 @@ import (
 	"math"
 	"strconv"
 
-	"github.com/cfioretti/recipe-manager/internal/dough-calculator/domain"
+	"github.com/cfioretti/recipe-manager/internal/ingredients-balancer/domain"
 )
 
 type PanStrategy interface {
