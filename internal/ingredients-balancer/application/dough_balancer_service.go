@@ -10,7 +10,13 @@ import (
 
 const totalPercentage = 100
 
-func Balance(recipe recipedomain.Recipe, pans domain.Pans) (*recipedomain.RecipeAggregate, error) {
+type DoughBalancerService struct{}
+
+func NewDoughBalancerService() *DoughBalancerService {
+	return &DoughBalancerService{}
+}
+
+func (dbs DoughBalancerService) Balance(recipe recipedomain.Recipe, pans domain.Pans) (*recipedomain.RecipeAggregate, error) {
 	if pans.TotalDoughWeight <= 0 || recipe.Dough.Flour <= 0 {
 		return nil, errors.New("invalid dough weight")
 	}

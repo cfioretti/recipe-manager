@@ -19,15 +19,21 @@ type Calculator interface {
 	TotalDoughWeightByPans([]byte) (*calculatordomain.Pans, error)
 }
 
+type Balancer interface {
+	Balance(domain.Recipe, calculatordomain.Pans) (*domain.RecipeAggregate, error)
+}
+
 type RecipeController struct {
 	recipeHandler RecipeHandler
 	calculator    Calculator
+	balancer      Balancer
 }
 
-func NewRecipeController(recipeHandler RecipeHandler, calculator Calculator) *RecipeController {
+func NewRecipeController(recipeHandler RecipeHandler, calculator Calculator, balancer Balancer) *RecipeController {
 	return &RecipeController{
 		recipeHandler: recipeHandler,
 		calculator:    calculator,
+		balancer:      balancer,
 	}
 }
 
@@ -40,23 +46,28 @@ func (rc *RecipeController) RetrieveRecipeAggregate(ctx *gin.Context) {
 			err.Error(),
 		)
 	}
-	_, validationError := rc.calculator.TotalDoughWeightByPans(body)
-	if validationError != nil {
-		ctx.AbortWithStatusJSON(
-			http.StatusBadRequest,
-			validationError.Error(),
-		)
+	pans, calculatorError := rc.calculator.TotalDoughWeightByPans(body)
+	if calculatorError != nil {
+		rc.abortWithStatus400(ctx, calculatorError)
 	}
-	recipe, err := rc.recipeHandler.Handle(recipeUuid)
-	if err != nil {
-		ctx.AbortWithStatusJSON(
-			http.StatusInternalServerError,
-			err.Error(),
-		)
+	recipe, handlerErr := rc.recipeHandler.Handle(recipeUuid)
+	if handlerErr != nil {
+		rc.abortWithStatus400(ctx, handlerErr)
+	}
+	_, balancerError := rc.balancer.Balance(*recipe, *pans)
+	if balancerError != nil {
+		rc.abortWithStatus400(ctx, balancerError)
 	}
 	response := domain.RecipeAggregate{Recipe: *recipe}
 	ctx.JSON(
 		http.StatusOK,
 		&response,
+	)
+}
+
+func (rc *RecipeController) abortWithStatus400(ctx *gin.Context, err error) {
+	ctx.AbortWithStatusJSON(
+		http.StatusBadRequest,
+		err.Error(),
 	)
 }
