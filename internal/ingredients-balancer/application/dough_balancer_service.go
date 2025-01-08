@@ -21,7 +21,8 @@ func (dbs DoughBalancerService) Balance(recipe recipedomain.Recipe, pans domain.
 		return nil, errors.New("invalid dough weight")
 	}
 
-	conversionRatio := pans.TotalDoughWeight / totalPercentage
+	percentVariation := pans.TotalDoughWeight * recipe.Dough.PercentVariation / 100
+	conversionRatio := (pans.TotalDoughWeight + percentVariation) / totalPercentage
 	balancedDough := recipedomain.Dough{
 		Flour:  round(recipe.Dough.Flour * conversionRatio),
 		Water:  round(recipe.Dough.Water * conversionRatio),
