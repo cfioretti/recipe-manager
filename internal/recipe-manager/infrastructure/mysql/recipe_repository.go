@@ -7,7 +7,6 @@ import (
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/domain"
 
 	"github.com/google/uuid"
-	"github.com/pkg/errors"
 )
 
 type MySqlRecipeRepository struct {
@@ -32,9 +31,6 @@ func (rr MySqlRecipeRepository) GetRecipeByUuid(recipeUuid uuid.UUID) (*domain.R
 		&doughJSON,
 	)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return &domain.Recipe{}, nil
-		}
 		return nil, err
 	}
 

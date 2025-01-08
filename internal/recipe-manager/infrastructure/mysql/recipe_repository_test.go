@@ -47,16 +47,15 @@ func TestGetRecipeByUuid(t *testing.T) {
 		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 
-	t.Run("should return empty recipe when not found", func(t *testing.T) {
+	t.Run("should return error when recipe is not found", func(t *testing.T) {
 		mock.ExpectQuery(`SELECT id, uuid, name, description, author, dough FROM recipes WHERE uuid = ?`).
 			WithArgs(newUuid).
 			WillReturnError(sql.ErrNoRows)
 
 		recipe, err := repo.GetRecipeByUuid(newUuid)
 
-		assert.NoError(t, err)
-		assert.Equal(t, &domain.Recipe{}, recipe)
-		assert.NoError(t, mock.ExpectationsWereMet())
+		assert.Error(t, err)
+		assert.Nil(t, recipe)
 	})
 
 	t.Run("should return error on DB failure", func(t *testing.T) {

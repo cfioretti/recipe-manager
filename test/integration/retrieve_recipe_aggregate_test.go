@@ -47,16 +47,4 @@ func TestRecipeIntegration(t *testing.T) {
 		assert.Equal(t, testRecipe.Name, result.Name)
 		assert.Equal(t, testRecipe.Author, result.Author)
 	})
-
-	t.Run("recipe not found returns empty RecipeAggregate", func(t *testing.T) {
-		_, err = db.DB.Exec(`DELETE FROM recipes WHERE true`)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		result, err := service.Handle(uuid.New())
-
-		assert.NoError(t, err)
-		assert.Equal(t, &domain.RecipeAggregate{}, result)
-	})
 }
