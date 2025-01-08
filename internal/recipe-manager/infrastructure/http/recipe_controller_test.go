@@ -7,7 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	calculatordomain "github.com/cfioretti/recipe-manager/internal/dough-calculator/domain"
+	calculatordomain "github.com/cfioretti/recipe-manager/internal/ingredients-balancer/domain"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/domain"
 
 	"github.com/gin-gonic/gin"
