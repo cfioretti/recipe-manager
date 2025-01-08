@@ -31,10 +31,7 @@ func TestHandle(t *testing.T) {
 		service := NewRecipeService(mockRepo)
 		result, _ := service.Handle(recipeUuid)
 
-		expectedResponse := domain.RecipeAggregate{
-			Recipe: recipe,
-		}
-		assert.Equal(t, expectedResponse, *result)
+		assert.Equal(t, recipe, *result)
 	})
 
 	t.Run("error", func(t *testing.T) {

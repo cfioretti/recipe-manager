@@ -12,7 +12,7 @@ import (
 )
 
 type RecipeHandler interface {
-	Handle(uuid.UUID) (*domain.RecipeAggregate, error)
+	Handle(uuid.UUID) (*domain.Recipe, error)
 }
 
 type Calculator interface {
@@ -54,8 +54,9 @@ func (rc *RecipeController) RetrieveRecipeAggregate(ctx *gin.Context) {
 			err.Error(),
 		)
 	}
+	response := domain.RecipeAggregate{Recipe: *recipe}
 	ctx.JSON(
 		http.StatusOK,
-		recipe,
+		&response,
 	)
 }

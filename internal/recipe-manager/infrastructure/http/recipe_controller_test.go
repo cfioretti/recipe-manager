@@ -20,9 +20,9 @@ type MockRecipeService struct {
 	mock.Mock
 }
 
-func (m *MockRecipeService) Handle(recipeUuid uuid.UUID) (*domain.RecipeAggregate, error) {
+func (m *MockRecipeService) Handle(recipeUuid uuid.UUID) (*domain.Recipe, error) {
 	args := m.Called(recipeUuid)
-	return args.Get(0).(*domain.RecipeAggregate), args.Error(1)
+	return args.Get(0).(*domain.Recipe), args.Error(1)
 }
 
 type MockCalculatorService struct {
@@ -46,9 +46,7 @@ func TestRetrieveRecipeAggregate(t *testing.T) {
 			bytes.NewBuffer([]byte("body")),
 		)
 
-		expectedResponse := domain.RecipeAggregate{
-			Recipe: domain.Recipe{Uuid: recipeUuid},
-		}
+		expectedResponse := domain.Recipe{Uuid: recipeUuid}
 		mockRecipeService := new(MockRecipeService)
 		mockRecipeService.On("Handle", recipeUuid).Return(&expectedResponse, nil)
 		pans := calculatordomain.Pans{}
@@ -70,9 +68,7 @@ func TestRetrieveRecipeAggregate(t *testing.T) {
 			bytes.NewBuffer([]byte("WRONG BODY")),
 		)
 
-		expectedResponse := domain.RecipeAggregate{
-			Recipe: domain.Recipe{Uuid: recipeUuid},
-		}
+		expectedResponse := domain.Recipe{Uuid: recipeUuid}
 		mockRecipeService := new(MockRecipeService)
 		mockRecipeService.On("Handle", recipeUuid).Return(&expectedResponse, nil)
 		pans := calculatordomain.Pans{}
@@ -94,9 +90,7 @@ func TestRetrieveRecipeAggregate(t *testing.T) {
 			bytes.NewBuffer([]byte("body")),
 		)
 
-		expectedResponse := domain.RecipeAggregate{
-			Recipe: domain.Recipe{Uuid: recipeUuid},
-		}
+		expectedResponse := domain.Recipe{Uuid: recipeUuid}
 		mockRecipeService := new(MockRecipeService)
 		mockRecipeService.On("Handle", recipeUuid).Return(&expectedResponse, errors.New("ERROR"))
 		pans := calculatordomain.Pans{}
