@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"testing"
 
+	balancerapplication "github.com/cfioretti/recipe-manager/internal/ingredients-balancer/application"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/application"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/domain"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/mysql"
@@ -22,7 +23,11 @@ func TestRecipeIntegration(t *testing.T) {
 	}
 	defer db.Cleanup(ctx)
 
-	service := application.NewRecipeService(mysql.NewMySqlRecipeRepository(db.DB))
+	service := application.NewRecipeService(
+		mysql.NewMySqlRecipeRepository(db.DB),
+		balancerapplication.NewDoughCalculatorService(),
+		balancerapplication.NewDoughBalancerService(),
+	)
 
 	t.Run("retrieve RecipeAggregate successfully", func(t *testing.T) {
 		dough := domain.Dough{PercentVariation: -10, Flour: 60, Water: 30, Salt: 5, EvoOil: 3, Yeast: 2}
@@ -42,7 +47,7 @@ func TestRecipeIntegration(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		result, err := service.Handle(testRecipe.Uuid)
+		result, err := service.Handle(testRecipe.Uuid, []byte{})
 
 		assert.NoError(t, err)
 		assert.Equal(t, testRecipe.Name, result.Name)
