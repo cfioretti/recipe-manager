@@ -4,6 +4,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
+	"github.com/cfioretti/recipe-manager/internal/ingredients-balancer/domain"
 )
 
 func TestGetStrategy(t *testing.T) {
@@ -36,35 +38,35 @@ func TestPanStrategies(t *testing.T) {
 	tests := []struct {
 		name     string
 		strategy PanStrategy
-		measures map[string]interface{}
+		measures domain.Measures
 		wantArea float64
 		wantErr  bool
 	}{
 		{
 			name:     "round pan",
 			strategy: &RoundPanStrategy{},
-			measures: map[string]interface{}{"diameter": "20"},
+			measures: domain.Measures{Diameter: intPtr(20)},
 			wantArea: 157.07963267948966,
 			wantErr:  false,
 		},
 		{
 			name:     "square pan",
 			strategy: &SquarePanStrategy{},
-			measures: map[string]interface{}{"edge": "20"},
+			measures: domain.Measures{Edge: intPtr(20)},
 			wantArea: 200,
 			wantErr:  false,
 		},
 		{
 			name:     "rectangular pan",
 			strategy: &RectangularPanStrategy{},
-			measures: map[string]interface{}{"width": "20", "length": "30"},
+			measures: domain.Measures{Width: intPtr(20), Length: intPtr(30)},
 			wantArea: 300,
 			wantErr:  false,
 		},
 		{
 			name:     "invalid measures",
 			strategy: &RoundPanStrategy{},
-			measures: map[string]interface{}{"diameter": "invalid"},
+			measures: domain.Measures{},
 			wantErr:  true,
 		},
 	}
@@ -80,4 +82,8 @@ func TestPanStrategies(t *testing.T) {
 			assert.Equal(t, tt.wantArea, pan.DoughWeight)
 		})
 	}
+}
+
+func intPtr(i int) *int {
+	return &i
 }
