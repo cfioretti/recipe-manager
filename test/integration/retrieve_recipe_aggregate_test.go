@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	balancerapplication "github.com/cfioretti/recipe-manager/internal/ingredients-balancer/application"
+	balancerdomain "github.com/cfioretti/recipe-manager/internal/ingredients-balancer/domain"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/application"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/domain"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/mysql"
@@ -47,7 +48,7 @@ func TestRecipeIntegration(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		result, err := service.Handle(testRecipe.Uuid, []byte{})
+		result, err := service.Handle(testRecipe.Uuid, balancerdomain.Pans{})
 
 		assert.NoError(t, err)
 		assert.Equal(t, testRecipe.Name, result.Name)

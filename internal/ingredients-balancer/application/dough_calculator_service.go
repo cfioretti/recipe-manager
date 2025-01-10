@@ -1,7 +1,6 @@
 package application
 
 import (
-	"encoding/json"
 	"errors"
 
 	"github.com/cfioretti/recipe-manager/internal/ingredients-balancer/domain"
@@ -23,14 +22,9 @@ type PanInput struct {
 	Measures map[string]interface{} `json:"measures"`
 }
 
-func (dc DoughCalculatorService) TotalDoughWeightByPans(body []byte) (*domain.Pans, error) {
-	var input Input
-	if err := json.Unmarshal(body, &input); err != nil {
-		return nil, errors.New("invalid JSON format")
-	}
-
+func (dc DoughCalculatorService) TotalDoughWeightByPans(body domain.Pans) (*domain.Pans, error) {
 	var result domain.Pans
-	for _, item := range input.Pans {
+	for _, item := range body.Pans {
 		strategy, err := strategies.GetStrategy(item.Shape)
 		if err != nil {
 			return nil, errors.New("unsupported shape")

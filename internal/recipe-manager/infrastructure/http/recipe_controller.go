@@ -1,9 +1,10 @@
 package http
 
 import (
-	"io"
+	"github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/http/dto"
 	"net/http"
 
+	balancerdomain "github.com/cfioretti/recipe-manager/internal/ingredients-balancer/domain"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/domain"
 
 	"github.com/gin-gonic/gin"
@@ -11,7 +12,7 @@ import (
 )
 
 type RecipeHandler interface {
-	Handle(uuid.UUID, []byte) (*domain.RecipeAggregate, error)
+	Handle(uuid.UUID, balancerdomain.Pans) (*domain.RecipeAggregate, error)
 }
 
 type RecipeController struct {
@@ -24,18 +25,16 @@ func NewRecipeController(recipeHandler RecipeHandler) *RecipeController {
 
 func (rc *RecipeController) RetrieveRecipeAggregate(ctx *gin.Context) {
 	recipeUuid := uuid.MustParse(ctx.Param("uuid"))
-	requestBody, err := io.ReadAll(ctx.Request.Body)
-	if err != nil {
-		ctx.AbortWithStatusJSON(
-			http.StatusInternalServerError,
-			err.Error(),
-		)
+	var requestBody dto.PanRequest
+	if err := ctx.ShouldBindJSON(&requestBody); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
 	}
-	recipe, err := rc.recipeHandler.Handle(recipeUuid, requestBody)
+	recipe, err := rc.recipeHandler.Handle(recipeUuid, requestBody.ToDomain())
 	if err != nil {
 		ctx.AbortWithStatusJSON(
 			http.StatusBadRequest,
-			err.Error(),
+			gin.H{"error": err.Error()},
 		)
 	}
 	ctx.JSON(
