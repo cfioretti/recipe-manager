@@ -1,11 +1,11 @@
 package http
 
 import (
-	"github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/http/dto"
 	"net/http"
 
 	balancerdomain "github.com/cfioretti/recipe-manager/internal/ingredients-balancer/domain"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/domain"
+	"github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/http/dto"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -37,8 +37,9 @@ func (rc *RecipeController) RetrieveRecipeAggregate(ctx *gin.Context) {
 			gin.H{"error": err.Error()},
 		)
 	}
+	aggregateResponse := recipe.ToDTO()
 	ctx.JSON(
 		http.StatusOK,
-		&recipe,
+		gin.H{"data": &aggregateResponse},
 	)
 }
