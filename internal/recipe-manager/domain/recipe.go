@@ -1,6 +1,8 @@
 package domain
 
 import (
+	"math"
+
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/http/dto"
 
 	"github.com/google/uuid"
@@ -28,6 +30,7 @@ type SplitIngredients struct {
 }
 
 type Dough struct {
+	Name             string
 	PercentVariation float64
 	Flour            float64
 	Water            float64
@@ -64,16 +67,28 @@ func (r RecipeAggregate) ToDTO() dto.RecipeAggregateResponse {
 	}
 }
 
-func mapDoughListToDTO(doughList []Dough) []dto.Dough {
-	dtoList := make([]dto.Dough, len(doughList))
+func mapDoughListToDTO(doughList []Dough) []dto.SplitDough {
+	dtoList := make([]dto.SplitDough, len(doughList))
 	for i, d := range doughList {
-		dtoList[i] = dto.Dough{
-			Flour:  d.Flour,
-			Water:  d.Water,
-			Salt:   d.Salt,
-			EvoOil: d.EvoOil,
-			Yeast:  d.Yeast,
+		totalDoughWeight := calculateTotal(d)
+		dtoList[i] = dto.SplitDough{
+			Dough: dto.DoughResponse{
+				Total: totalDoughWeight,
+				Dough: dto.Dough{
+					Flour:  d.Flour,
+					Water:  d.Water,
+					Salt:   d.Salt,
+					EvoOil: d.EvoOil,
+					Yeast:  d.Yeast,
+				},
+			},
+			Shape: d.Name,
 		}
 	}
 	return dtoList
+}
+
+func calculateTotal(d Dough) float64 {
+	totalWeight := d.Flour + d.Water + d.Salt + d.EvoOil + d.Yeast
+	return math.Round(totalWeight*10) / 10
 }

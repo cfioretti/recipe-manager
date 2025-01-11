@@ -52,6 +52,7 @@ func calculateSplitDoughs(totalDough recipedomain.Dough, pans domain.Pans) []rec
 	for _, pan := range pans.Pans {
 		ratio := pan.DoughWeight / totalDoughWeight
 		splitDough := recipedomain.Dough{
+			Name:   pan.Shape, // to update with pan name
 			Flour:  round(totalDough.Flour * ratio),
 			Water:  round(totalDough.Water * ratio),
 			Salt:   round(totalDough.Salt * ratio),

@@ -18,8 +18,18 @@ type Recipe struct {
 }
 
 type SplitIngredients struct {
-	SplitDough   []Dough   `json:"splitDough"`
-	SplitTopping []Topping `json:"splitTopping"`
+	SplitDough   []SplitDough `json:"splitDough"`
+	SplitTopping []Topping    `json:"splitTopping"`
+}
+
+type SplitDough struct {
+	Shape string        `json:"shape"`
+	Dough DoughResponse `json:"dough"`
+}
+
+type DoughResponse struct {
+	Total float64 `json:"total"`
+	Dough
 }
 
 type Dough struct {

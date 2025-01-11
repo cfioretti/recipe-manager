@@ -47,22 +47,25 @@ func TestRecipeIntegration(t *testing.T) {
 			t.Fatal(err)
 		}
 
+		shape1 := "round"
+		shape2 := "square"
+		shape3 := "rectangular"
 		pans := balancerdomain.Pans{
 			Pans: []balancerdomain.Pan{
 				{
-					Shape: "round",
+					Shape: shape1,
 					Measures: balancerdomain.Measures{
 						Diameter: intPtr(50),
 					},
 				},
 				{
-					Shape: "square",
+					Shape: shape2,
 					Measures: balancerdomain.Measures{
 						Edge: intPtr(20),
 					},
 				},
 				{
-					Shape: "rectangular",
+					Shape: shape3,
 					Measures: balancerdomain.Measures{
 						Width:  intPtr(30),
 						Length: intPtr(40),
@@ -73,9 +76,9 @@ func TestRecipeIntegration(t *testing.T) {
 
 		expectedDough := domain.Dough{PercentVariation: 0, Flour: 962.1, Water: 481.1, Salt: 80.2, EvoOil: 48.1, Yeast: 32.1}
 
-		splitDough1 := domain.Dough{PercentVariation: 0, Flour: 530.1, Water: 265.1, Salt: 44.2, EvoOil: 26.5, Yeast: 17.7}
-		splitDough2 := domain.Dough{PercentVariation: 0, Flour: 108, Water: 54, Salt: 9, EvoOil: 5.4, Yeast: 3.6}
-		splitDough3 := domain.Dough{PercentVariation: 0, Flour: 324, Water: 162, Salt: 27, EvoOil: 16.2, Yeast: 10.8}
+		splitDough1 := domain.Dough{Name: shape1, PercentVariation: 0, Flour: 530.1, Water: 265.1, Salt: 44.2, EvoOil: 26.5, Yeast: 17.7}
+		splitDough2 := domain.Dough{Name: shape2, PercentVariation: 0, Flour: 108, Water: 54, Salt: 9, EvoOil: 5.4, Yeast: 3.6}
+		splitDough3 := domain.Dough{Name: shape3, PercentVariation: 0, Flour: 324, Water: 162, Salt: 27, EvoOil: 16.2, Yeast: 10.8}
 		expectedSplitDough := []domain.Dough{splitDough1, splitDough2, splitDough3}
 
 		result, err := service.Handle(testRecipe.Uuid, pans)
