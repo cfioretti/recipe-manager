@@ -131,3 +131,7 @@ func InjectTestProperties() {
 		panic(fmt.Errorf("failed to read test properties config: %w", err))
 	}
 }
+
+func intPtr(value int) *int {
+	return &value
+}
