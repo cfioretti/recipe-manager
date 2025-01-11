@@ -43,8 +43,23 @@ func makeRouter(dB *sql.DB) *gin.Engine {
 	)
 
 	router := gin.Default()
+	router.Use(corsMiddleware())
 	router.POST("/recipes/:uuid/aggregate", recipeController.RetrieveRecipeAggregate)
 	return router
+}
+
+func corsMiddleware() gin.HandlerFunc {
+	feLocalHost := viper.GetString("local.fe-host")
+	return func(c *gin.Context) {
+		c.Writer.Header().Set("Access-Control-Allow-Origin", feLocalHost)
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(204)
+			return
+		}
+		c.Next()
+	}
 }
 
 func newDBConnection(config *configs.DBConfig) (*sql.DB, error) {

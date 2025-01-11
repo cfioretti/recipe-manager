@@ -1,6 +1,9 @@
 server:
   port: 8088
 
+local:
+  fe-host: "http://localhost:3000"
+
 database:
   host: "localhost"
   port: 13306
