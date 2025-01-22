@@ -4,12 +4,12 @@ import (
 	"errors"
 	"testing"
 
-	balancerdomain "github.com/cfioretti/recipe-manager/internal/ingredients-balancer/domain"
-	"github.com/cfioretti/recipe-manager/internal/recipe-manager/domain"
-
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+
+	balancerdomain "github.com/cfioretti/recipe-manager/internal/ingredients-balancer/domain"
+	"github.com/cfioretti/recipe-manager/internal/recipe-manager/domain"
 )
 
 type MockRecipeRepository struct {

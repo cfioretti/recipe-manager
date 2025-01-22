@@ -3,10 +3,11 @@ package mysql
 import (
 	"database/sql"
 	"encoding/json"
-
-	"github.com/cfioretti/recipe-manager/internal/recipe-manager/domain"
+	"slices"
 
 	"github.com/google/uuid"
+
+	"github.com/cfioretti/recipe-manager/internal/recipe-manager/domain"
 )
 
 type MySqlRecipeRepository struct {
@@ -34,9 +35,40 @@ func (rr MySqlRecipeRepository) GetRecipeByUuid(recipeUuid uuid.UUID) (*domain.R
 		return nil, err
 	}
 
-	err = json.Unmarshal([]byte(doughJSON), &response.Dough)
+	var doughMap map[string]float64
+	err = json.Unmarshal([]byte(doughJSON), &doughMap)
 	if err != nil {
 		return nil, err
+	}
+
+	percentVariation := doughMap["percentVariation"]
+	delete(doughMap, "percentVariation")
+
+	var ingredients []domain.Ingredient
+	for key, value := range doughMap {
+		ingredients = append(ingredients, domain.Ingredient{
+			Name:   key,
+			Amount: value,
+		})
+	}
+
+	slices.SortFunc(ingredients, func(a, b domain.Ingredient) int {
+		switch {
+		case a.Amount > b.Amount:
+			return -1
+		case a.Amount == b.Amount:
+			if a.Name < b.Name {
+				return -1
+			}
+			fallthrough
+		default:
+			return 1
+		}
+	})
+
+	response.Dough = domain.Dough{
+		PercentVariation: percentVariation,
+		Ingredients:      ingredients,
 	}
 
 	return &response, nil

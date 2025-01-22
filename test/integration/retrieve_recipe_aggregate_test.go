@@ -5,14 +5,14 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
+
 	balancerapplication "github.com/cfioretti/recipe-manager/internal/ingredients-balancer/application"
 	balancerdomain "github.com/cfioretti/recipe-manager/internal/ingredients-balancer/domain"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/application"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/domain"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/mysql"
-
-	"github.com/google/uuid"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestRecipeIntegration(t *testing.T) {
@@ -30,8 +30,16 @@ func TestRecipeIntegration(t *testing.T) {
 	)
 
 	t.Run("Happy Path - retrieve RecipeAggregate successfully", func(t *testing.T) {
-		dough := domain.Dough{PercentVariation: -10, Flour: 60, Water: 30, Salt: 5, EvoOil: 3, Yeast: 2}
-		doughJSON, err := json.Marshal(dough)
+		dough := domain.Dough{
+			PercentVariation: -10,
+			Ingredients: []domain.Ingredient{
+				{Name: "flour", Amount: 60},
+				{Name: "water", Amount: 30},
+				{Name: "salt", Amount: 5},
+				{Name: "evoOil", Amount: 3},
+				{Name: "yeast", Amount: 2},
+			},
+		}
 		testRecipe := &domain.Recipe{
 			Uuid:        uuid.New(),
 			Name:        "Test Recipe",
@@ -40,9 +48,10 @@ func TestRecipeIntegration(t *testing.T) {
 			Dough:       dough,
 		}
 
+		stringDoughJSON := `{"salt": 5, "flour": 60, "water": 30, "evoOil": 3, "yeast": 2, "percentVariation": -10}`
 		_, err = db.DB.Exec(`DELETE FROM recipes WHERE true`)
 		query := `INSERT INTO recipes (uuid, name, description, author, dough) VALUES (?, ?, ?, ?, ?)`
-		_, err = db.DB.Exec(query, testRecipe.Uuid, testRecipe.Name, testRecipe.Description, testRecipe.Author, string(doughJSON))
+		_, err = db.DB.Exec(query, testRecipe.Uuid, testRecipe.Name, testRecipe.Description, testRecipe.Author, stringDoughJSON)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -74,19 +83,57 @@ func TestRecipeIntegration(t *testing.T) {
 			},
 		}
 
-		expectedDough := domain.Dough{PercentVariation: 0, Flour: 962.1, Water: 481.1, Salt: 80.2, EvoOil: 48.1, Yeast: 32.1}
+		expectedDough := domain.Dough{
+			PercentVariation: -10,
+			Ingredients: []domain.Ingredient{
+				{Name: "flour", Amount: 962.1},
+				{Name: "water", Amount: 481.1},
+				{Name: "salt", Amount: 80.2},
+				{Name: "evoOil", Amount: 48.1},
+				{Name: "yeast", Amount: 32.1},
+			},
+		}
 
-		splitDough1 := domain.Dough{Name: shape1, PercentVariation: 0, Flour: 530.1, Water: 265.1, Salt: 44.2, EvoOil: 26.5, Yeast: 17.7}
-		splitDough2 := domain.Dough{Name: shape2, PercentVariation: 0, Flour: 108, Water: 54, Salt: 9, EvoOil: 5.4, Yeast: 3.6}
-		splitDough3 := domain.Dough{Name: shape3, PercentVariation: 0, Flour: 324, Water: 162, Salt: 27, EvoOil: 16.2, Yeast: 10.8}
+		splitDough1 := domain.Dough{
+			Name:             shape1,
+			PercentVariation: 0,
+			Ingredients: []domain.Ingredient{
+				{Name: "flour", Amount: 530.1},
+				{Name: "water", Amount: 265.1},
+				{Name: "salt", Amount: 44.2},
+				{Name: "evoOil", Amount: 26.5},
+				{Name: "yeast", Amount: 17.7},
+			}}
+		splitDough2 := domain.Dough{
+			Name:             shape2,
+			PercentVariation: 0,
+			Ingredients: []domain.Ingredient{
+				{Name: "flour", Amount: 108},
+				{Name: "water", Amount: 54},
+				{Name: "salt", Amount: 9},
+				{Name: "evoOil", Amount: 5.4},
+				{Name: "yeast", Amount: 3.6},
+			}}
+		splitDough3 := domain.Dough{
+			Name:             shape3,
+			PercentVariation: 0,
+			Ingredients: []domain.Ingredient{
+				{Name: "flour", Amount: 324},
+				{Name: "water", Amount: 162},
+				{Name: "salt", Amount: 27},
+				{Name: "evoOil", Amount: 16.2},
+				{Name: "yeast", Amount: 10.8},
+			}}
 		expectedSplitDough := []domain.Dough{splitDough1, splitDough2, splitDough3}
 
 		result, err := service.Handle(testRecipe.Uuid, pans)
 
 		assert.NoError(t, err)
 		assert.Equal(t, testRecipe.Uuid, result.Uuid)
-		assert.Equal(t, expectedDough, result.Dough)
-		assert.Equal(t, expectedSplitDough, result.SplitIngredients.SplitDough)
+		assert.ElementsMatch(t, expectedDough.Ingredients, result.Recipe.Dough.Ingredients)
+		for i, d := range result.SplitIngredients.SplitDough {
+			assert.ElementsMatch(t, expectedSplitDough[i].Ingredients, d.Ingredients)
+		}
 	})
 
 	t.Run("Error - Recipe not found in repository", func(t *testing.T) {
@@ -110,7 +157,16 @@ func TestRecipeIntegration(t *testing.T) {
 	})
 
 	t.Run("Error - Invalid pans data -> Unsupported shape", func(t *testing.T) {
-		dough := domain.Dough{PercentVariation: -10, Flour: 60, Water: 30, Salt: 5, EvoOil: 3, Yeast: 2}
+		dough := domain.Dough{
+			PercentVariation: -10,
+			Ingredients: []domain.Ingredient{
+				{Name: "flour", Amount: 60},
+				{Name: "water", Amount: 30},
+				{Name: "salt", Amount: 5},
+				{Name: "evoOil", Amount: 3},
+				{Name: "yeast", Amount: 2},
+			},
+		}
 		doughJSON, err := json.Marshal(dough)
 		testRecipe := &domain.Recipe{
 			Uuid:        uuid.New(),

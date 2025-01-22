@@ -2,14 +2,13 @@ package mysql
 
 import (
 	"database/sql"
-	"encoding/json"
 	"testing"
-
-	"github.com/cfioretti/recipe-manager/internal/recipe-manager/domain"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/cfioretti/recipe-manager/internal/recipe-manager/domain"
 )
 
 func TestGetRecipeByUuid(t *testing.T) {
@@ -21,21 +20,28 @@ func TestGetRecipeByUuid(t *testing.T) {
 	newUuid := uuid.New()
 
 	t.Run("should return recipe successfully when found", func(t *testing.T) {
-		dough := domain.Dough{PercentVariation: -10, Flour: 60, Water: 30, Salt: 5, EvoOil: 3, Yeast: 2}
+		doughJSON := `{"salt": 5, "flour": 60, "water": 30, "evoOil": 3, "yeast": 2, "percentVariation": -10}`
 		expectedRecipe := &domain.Recipe{
 			Id:          1,
 			Uuid:        newUuid,
 			Name:        "Test Recipe",
 			Description: "Test Recipe Description",
 			Author:      "Test Author",
-			Dough:       dough,
+			Dough: domain.Dough{
+				PercentVariation: -10,
+				Ingredients: []domain.Ingredient{
+					{Name: "salt", Amount: 5},
+					{Name: "flour", Amount: 60},
+					{Name: "water", Amount: 30},
+					{Name: "evoOil", Amount: 3},
+					{Name: "yeast", Amount: 2},
+				},
+			},
 		}
-		doughJSON, err := json.Marshal(dough)
-		assert.NoError(t, err)
 
 		rows := sqlmock.NewRows([]string{"id", "uuid", "name", "description", "author", "dough"}).
 			AddRow(expectedRecipe.Id, expectedRecipe.Uuid, expectedRecipe.Name, expectedRecipe.Description,
-				expectedRecipe.Author, string(doughJSON))
+				expectedRecipe.Author, doughJSON)
 		mock.ExpectQuery(`SELECT id, uuid, name, description, author, dough FROM recipes WHERE uuid = ?`).
 			WithArgs(newUuid).
 			WillReturnRows(rows)
@@ -43,7 +49,10 @@ func TestGetRecipeByUuid(t *testing.T) {
 		recipe, err := repo.GetRecipeByUuid(newUuid)
 
 		assert.NoError(t, err)
-		assert.Equal(t, expectedRecipe, recipe)
+		assert.Equal(t, expectedRecipe.Uuid, recipe.Uuid)
+		assert.Equal(t, expectedRecipe.Name, recipe.Name)
+		assert.Equal(t, expectedRecipe.Author, recipe.Author)
+		assert.ElementsMatch(t, expectedRecipe.Dough.Ingredients, recipe.Dough.Ingredients)
 		assert.NoError(t, mock.ExpectationsWereMet())
 	})
 

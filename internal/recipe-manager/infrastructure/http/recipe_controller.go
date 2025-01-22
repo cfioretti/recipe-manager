@@ -37,7 +37,7 @@ func (rc *RecipeController) RetrieveRecipeAggregate(ctx *gin.Context) {
 			gin.H{"error": err.Error()},
 		)
 	}
-	aggregateResponse := recipe.ToDTO()
+	aggregateResponse := dto.DomainToDTO(*recipe)
 	ctx.JSON(
 		http.StatusOK,
 		gin.H{"data": &aggregateResponse},

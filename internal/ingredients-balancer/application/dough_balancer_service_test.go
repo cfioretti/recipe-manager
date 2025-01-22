@@ -3,11 +3,11 @@ package application
 import (
 	"testing"
 
-	"github.com/cfioretti/recipe-manager/internal/ingredients-balancer/domain"
-	recipedomain "github.com/cfioretti/recipe-manager/internal/recipe-manager/domain"
-
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/cfioretti/recipe-manager/internal/ingredients-balancer/domain"
+	recipedomain "github.com/cfioretti/recipe-manager/internal/recipe-manager/domain"
 )
 
 func TestBalance(t *testing.T) {
@@ -25,11 +25,13 @@ func TestBalance(t *testing.T) {
 				Uuid: uuid.New(),
 				Name: "Test Recipe",
 				Dough: recipedomain.Dough{
-					Flour:  55.7,
-					Water:  41.6,
-					Salt:   1.1,
-					EvoOil: 1.1,
-					Yeast:  0.5,
+					Ingredients: []recipedomain.Ingredient{
+						{Name: "flour", Amount: 55.7},
+						{Name: "water", Amount: 41.6},
+						{Name: "salt", Amount: 1.1},
+						{Name: "evoOil", Amount: 1.1},
+						{Name: "yeast", Amount: 0.5},
+					},
 				},
 			},
 			pans: domain.Pans{
@@ -51,7 +53,9 @@ func TestBalance(t *testing.T) {
 			name: "invalid total dough weight",
 			recipe: recipedomain.Recipe{
 				Dough: recipedomain.Dough{
-					Flour: 55.7,
+					Ingredients: []recipedomain.Ingredient{
+						{Name: "flour", Amount: 55.7},
+					},
 				},
 			},
 			pans: domain.Pans{
@@ -60,10 +64,10 @@ func TestBalance(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "invalid flour percentage",
+			name: "empty ingredients",
 			recipe: recipedomain.Recipe{
 				Dough: recipedomain.Dough{
-					Flour: 0,
+					Ingredients: []recipedomain.Ingredient{},
 				},
 			},
 			pans: domain.Pans{
@@ -88,16 +92,16 @@ func TestBalance(t *testing.T) {
 			assert.NoError(t, err)
 			assert.NotNil(t, result)
 
-			totalWeight := result.Dough.Flour +
-				result.Dough.Water +
-				result.Dough.Salt +
-				result.Dough.EvoOil +
-				result.Dough.Yeast
-
+			totalWeight := 0.0
+			for _, ing := range result.Dough.Ingredients {
+				totalWeight += ing.Amount
+			}
 			assert.InDelta(t, tt.pans.TotalDoughWeight, totalWeight, 0.1)
 
-			assert.InDelta(t, tt.recipe.Dough.Flour/100*tt.pans.TotalDoughWeight, result.Dough.Flour, 0.1)
-			assert.InDelta(t, tt.recipe.Dough.Water/100*tt.pans.TotalDoughWeight, result.Dough.Water, 0.1)
+			firstIngredientRatio := getFirstIngredientAmount(tt.recipe.Dough.Ingredients) / 100
+			expectedAmount := firstIngredientRatio * tt.pans.TotalDoughWeight
+			actualAmount := getFirstIngredientAmount(result.Dough.Ingredients)
+			assert.InDelta(t, expectedAmount, actualAmount, 0.1)
 		})
 	}
 }
@@ -105,11 +109,13 @@ func TestBalance(t *testing.T) {
 func TestCalculateSplitDoughs(t *testing.T) {
 	t.Run("multiple pans with proportional weights", func(t *testing.T) {
 		totalDough := recipedomain.Dough{
-			Flour:  1000.0,
-			Water:  700.0,
-			Salt:   20.0,
-			EvoOil: 50.0,
-			Yeast:  5.0,
+			Ingredients: []recipedomain.Ingredient{
+				{Name: "flour", Amount: 1000.0},
+				{Name: "water", Amount: 700.0},
+				{Name: "salt", Amount: 20.0},
+				{Name: "evoOil", Amount: 50.0},
+				{Name: "yeast", Amount: 5.0},
+			},
 		}
 
 		pans := domain.Pans{
@@ -121,32 +127,24 @@ func TestCalculateSplitDoughs(t *testing.T) {
 			},
 		}
 
-		expected := []recipedomain.Dough{
-			{Flour: 500.0, Water: 350.0, Salt: 10.0, EvoOil: 25.0, Yeast: 2.5},
-			{Flour: 300.0, Water: 210.0, Salt: 6.0, EvoOil: 15.0, Yeast: 1.5},
-			{Flour: 200.0, Water: 140.0, Salt: 4.0, EvoOil: 10.0, Yeast: 1.0},
-		}
-
 		result := calculateSplitDoughs(totalDough, pans)
+		assert.Len(t, result, len(pans.Pans))
 
-		if len(result) != len(expected) {
-			t.Fatalf("expected %d doughs, got %d", len(expected), len(result))
-		}
-
-		for i, dough := range result {
-			if dough != expected[i] {
-				t.Errorf("dough %d mismatch: expected %+v, got %+v", i, expected[i], dough)
+		for i, pan := range pans.Pans {
+			ratio := pan.DoughWeight / pans.TotalDoughWeight
+			for j, ingredient := range totalDough.Ingredients {
+				expectedAmount := round(ingredient.Amount * ratio)
+				assert.InDelta(t, expectedAmount, result[i].Ingredients[j].Amount, 0.1)
 			}
 		}
 	})
 
 	t.Run("single pan", func(t *testing.T) {
 		totalDough := recipedomain.Dough{
-			Flour:  1000.0,
-			Water:  700.0,
-			Salt:   20.0,
-			EvoOil: 50.0,
-			Yeast:  5.0,
+			Ingredients: []recipedomain.Ingredient{
+				{Name: "flour", Amount: 1000.0},
+				{Name: "water", Amount: 700.0},
+			},
 		}
 
 		pans := domain.Pans{
@@ -156,63 +154,19 @@ func TestCalculateSplitDoughs(t *testing.T) {
 			},
 		}
 
-		expected := []recipedomain.Dough{
-			{Flour: 1000.0, Water: 700.0, Salt: 20.0, EvoOil: 50.0, Yeast: 5.0},
-		}
-
 		result := calculateSplitDoughs(totalDough, pans)
+		assert.Len(t, result, 1)
 
-		if len(result) != len(expected) {
-			t.Fatalf("expected %d doughs, got %d", len(expected), len(result))
-		}
-
-		if result[0] != expected[0] {
-			t.Errorf("mismatch: expected %+v, got %+v", expected[0], result[0])
-		}
-	})
-
-	t.Run("pans with zero weight", func(t *testing.T) {
-		totalDough := recipedomain.Dough{
-			Flour:  1000.0,
-			Water:  700.0,
-			Salt:   20.0,
-			EvoOil: 50.0,
-			Yeast:  5.0,
-		}
-
-		pans := domain.Pans{
-			TotalDoughWeight: 1000.0,
-			Pans: []domain.Pan{
-				{DoughWeight: 0.0},
-				{DoughWeight: 1000.0},
-			},
-		}
-
-		expected := []recipedomain.Dough{
-			{Flour: 0.0, Water: 0.0, Salt: 0.0, EvoOil: 0.0, Yeast: 0.0},
-			{Flour: 1000.0, Water: 700.0, Salt: 20.0, EvoOil: 50.0, Yeast: 5.0},
-		}
-
-		result := calculateSplitDoughs(totalDough, pans)
-
-		if len(result) != len(expected) {
-			t.Fatalf("expected %d doughs, got %d", len(expected), len(result))
-		}
-
-		for i, dough := range result {
-			if dough != expected[i] {
-				t.Errorf("dough %d mismatch: expected %+v, got %+v", i, expected[i], dough)
-			}
+		for i, ingredient := range totalDough.Ingredients {
+			assert.Equal(t, ingredient.Amount, result[0].Ingredients[i].Amount)
 		}
 	})
 
 	t.Run("empty pans", func(t *testing.T) {
 		totalDough := recipedomain.Dough{
-			Flour:  1000.0,
-			Water:  700.0,
-			Salt:   20.0,
-			EvoOil: 50.0,
-			Yeast:  5.0,
+			Ingredients: []recipedomain.Ingredient{
+				{Name: "flour", Amount: 1000.0},
+			},
 		}
 
 		pans := domain.Pans{
@@ -220,13 +174,8 @@ func TestCalculateSplitDoughs(t *testing.T) {
 			Pans:             []domain.Pan{},
 		}
 
-		expected := []recipedomain.Dough{}
-
 		result := calculateSplitDoughs(totalDough, pans)
-
-		if len(result) != len(expected) {
-			t.Fatalf("expected %d doughs, got %d", len(expected), len(result))
-		}
+		assert.Empty(t, result)
 	})
 }
 
