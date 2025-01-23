@@ -31,11 +31,15 @@ type Dough struct {
 	Ingredients      []Ingredient
 }
 
+type Topping struct {
+	Name          string
+	ReferenceArea float64
+	Ingredients   []Ingredient
+}
+
 type Ingredient struct {
 	Name   string
 	Amount float64
 }
-
-type Topping struct{}
 
 type Steps struct{}
