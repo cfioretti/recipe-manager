@@ -24,13 +24,18 @@ type Recipe struct {
 }
 
 type SplitIngredients struct {
-	SplitDough   []SplitDough `json:"splitDough"`
-	SplitTopping []Topping    `json:"splitTopping"`
+	SplitDough   []SplitDough   `json:"splitDough"`
+	SplitTopping []SplitTopping `json:"splitTopping"`
 }
 
 type SplitDough struct {
 	Shape string        `json:"shape"`
 	Dough DoughResponse `json:"dough"`
+}
+
+type SplitTopping struct {
+	Shape   string  `json:"shape"`
+	Topping Topping `json:"topping"`
 }
 
 type DoughResponse struct {
@@ -42,12 +47,14 @@ type Dough struct {
 	Ingredients []Ingredient
 }
 
+type Topping struct {
+	Ingredients []Ingredient
+}
+
 type Ingredient struct {
 	Name   string
 	Amount float64
 }
-
-type Topping struct{}
 
 type Steps struct{}
 
@@ -64,12 +71,14 @@ func DomainToDTO(r domain.RecipeAggregate) RecipeAggregateResponse {
 					Ingredients: mapIngredientsToDTO(r.Recipe.Dough.Ingredients),
 				},
 			},
-			Topping: Topping{},
-			Steps:   Steps{},
+			Topping: Topping{
+				Ingredients: mapIngredientsToDTO(r.Recipe.Topping.Ingredients),
+			},
+			Steps: Steps{},
 		},
 		SplitIngredients: SplitIngredients{
 			SplitDough:   mapDoughListToDTO(r.SplitIngredients.SplitDough),
-			SplitTopping: []Topping{},
+			SplitTopping: []SplitTopping{},
 		},
 	}
 }
