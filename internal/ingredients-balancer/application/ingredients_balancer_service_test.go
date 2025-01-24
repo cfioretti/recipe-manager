@@ -12,11 +12,12 @@ import (
 
 func TestBalance(t *testing.T) {
 	tests := []struct {
-		name             string
-		recipe           recipedomain.Recipe
-		pans             domain.Pans
-		totalDoughWeight float64
-		wantErr          bool
+		name               string
+		recipe             recipedomain.Recipe
+		pans               domain.Pans
+		totalDoughWeight   float64
+		totalToppingWeight float64
+		wantErr            bool
 	}{
 		{
 			name: "valid recipe and pans without percent variation",
@@ -34,6 +35,15 @@ func TestBalance(t *testing.T) {
 						{Name: "yeast", Amount: 0.5},
 					},
 				},
+				Topping: recipedomain.Topping{
+					ReferenceArea: 1000,
+					Ingredients: []recipedomain.Ingredient{
+						{Name: "tomato", Amount: 300},
+						{Name: "mozzarella", Amount: 200},
+						{Name: "basil", Amount: 50},
+						{Name: "evoOil", Amount: 50},
+					},
+				},
 			},
 			pans: domain.Pans{
 				TotalArea: 1000,
@@ -48,8 +58,9 @@ func TestBalance(t *testing.T) {
 					},
 				},
 			},
-			totalDoughWeight: 500,
-			wantErr:          false,
+			totalDoughWeight:   500,
+			totalToppingWeight: 600,
+			wantErr:            false,
 		},
 		{
 			name: "valid recipe and pans with percent variation",
@@ -67,6 +78,15 @@ func TestBalance(t *testing.T) {
 						{Name: "yeast", Amount: 0.5},
 					},
 				},
+				Topping: recipedomain.Topping{
+					ReferenceArea: 1000,
+					Ingredients: []recipedomain.Ingredient{
+						{Name: "tomato", Amount: 300},
+						{Name: "mozzarella", Amount: 200},
+						{Name: "basil", Amount: 50},
+						{Name: "evoOil", Amount: 50},
+					},
+				},
 			},
 			pans: domain.Pans{
 				TotalArea: 2000,
@@ -81,8 +101,9 @@ func TestBalance(t *testing.T) {
 					},
 				},
 			},
-			totalDoughWeight: 1100,
-			wantErr:          false,
+			totalDoughWeight:   1100,
+			totalToppingWeight: 1200,
+			wantErr:            false,
 		},
 		{
 			name: "invalid total dough weight",
@@ -137,6 +158,12 @@ func TestBalance(t *testing.T) {
 			expectedAmount := firstIngredientRatio * tt.totalDoughWeight
 			actualAmount := getFirstIngredientAmount(result.Dough.Ingredients)
 			assert.InDelta(t, expectedAmount, actualAmount, 0.1)
+
+			totalToppingWeight := 0.0
+			for _, ing := range result.Topping.Ingredients {
+				totalToppingWeight += ing.Amount
+			}
+			assert.InDelta(t, tt.totalToppingWeight, totalToppingWeight, 0.1)
 		})
 	}
 }
