@@ -7,7 +7,6 @@ CREATE TABLE IF NOT EXISTS recipes
     author      VARCHAR(100),
     dough       JSON      DEFAULT (JSON_OBJECT()) NOT NULL,
     topping     JSON      DEFAULT (JSON_OBJECT()) NOT NULL,
-    steps       JSON      DEFAULT (JSON_ARRAY())  NOT NULL,
     created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_uuid (uuid)
