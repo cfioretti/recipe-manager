@@ -38,12 +38,12 @@ func TestBalance(t *testing.T) {
 				TotalDoughWeight: 1000,
 				Pans: []domain.Pan{
 					{
-						Shape:       "round",
-						DoughWeight: 500,
+						Shape: "round",
+						Area:  1000,
 					},
 					{
-						Shape:       "round",
-						DoughWeight: 500,
+						Shape: "round",
+						Area:  1000,
 					},
 				},
 			},
@@ -121,9 +121,9 @@ func TestCalculateSplitDoughs(t *testing.T) {
 		pans := domain.Pans{
 			TotalDoughWeight: 1000.0,
 			Pans: []domain.Pan{
-				{DoughWeight: 500.0},
-				{DoughWeight: 300.0},
-				{DoughWeight: 200.0},
+				{Area: 1000.0},
+				{Area: 600.0},
+				{Area: 400.0},
 			},
 		}
 
@@ -131,7 +131,7 @@ func TestCalculateSplitDoughs(t *testing.T) {
 		assert.Len(t, result, len(pans.Pans))
 
 		for i, pan := range pans.Pans {
-			ratio := pan.DoughWeight / pans.TotalDoughWeight
+			ratio := (pan.Area / 2) / pans.TotalDoughWeight
 			for j, ingredient := range totalDough.Ingredients {
 				expectedAmount := round(ingredient.Amount * ratio)
 				assert.InDelta(t, expectedAmount, result[i].Ingredients[j].Amount, 0.1)
@@ -150,7 +150,7 @@ func TestCalculateSplitDoughs(t *testing.T) {
 		pans := domain.Pans{
 			TotalDoughWeight: 1000.0,
 			Pans: []domain.Pan{
-				{DoughWeight: 1000.0},
+				{Area: 2000.0},
 			},
 		}
 

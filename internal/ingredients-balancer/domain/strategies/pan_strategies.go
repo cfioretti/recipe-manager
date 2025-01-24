@@ -34,13 +34,16 @@ func (s *RoundPanStrategy) Calculate(measures domain.Measures) (domain.Pan, erro
 		return domain.Pan{}, errors.New("diameter is required")
 	}
 
+	shape := "round"
 	radius := float64(*measures.Diameter) / 2
 	area := math.Pi * radius * radius
+	name := fmt.Sprintf("%s %d cm", shape, *measures.Diameter)
 
 	return domain.Pan{
-		Shape:       "round",
-		Measures:    measures,
-		DoughWeight: area / 2,
+		Shape:    shape,
+		Measures: measures,
+		Area:     area,
+		Name:     name,
 	}, nil
 }
 
@@ -49,12 +52,15 @@ func (s *SquarePanStrategy) Calculate(measures domain.Measures) (domain.Pan, err
 		return domain.Pan{}, errors.New("edge is required")
 	}
 
+	shape := "square"
 	area := float64(*measures.Edge * *measures.Edge)
+	name := fmt.Sprintf("%s %d cm", shape, *measures.Edge)
 
 	return domain.Pan{
-		Shape:       "square",
-		Measures:    measures,
-		DoughWeight: area / 2,
+		Shape:    shape,
+		Measures: measures,
+		Area:     area,
+		Name:     name,
 	}, nil
 }
 
@@ -63,11 +69,14 @@ func (s *RectangularPanStrategy) Calculate(measures domain.Measures) (domain.Pan
 		return domain.Pan{}, errors.New("width and length are required")
 	}
 
+	shape := "rectangular"
 	area := float64(*measures.Width * *measures.Length)
+	name := fmt.Sprintf("%s %d x %d cm", shape, *measures.Width, *measures.Length)
 
 	return domain.Pan{
-		Shape:       "rectangular",
-		Measures:    measures,
-		DoughWeight: area / 2,
+		Shape:    shape,
+		Measures: measures,
+		Area:     area,
+		Name:     name,
 	}, nil
 }

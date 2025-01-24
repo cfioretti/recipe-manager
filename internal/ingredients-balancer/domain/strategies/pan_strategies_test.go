@@ -43,24 +43,24 @@ func TestPanStrategies(t *testing.T) {
 		wantErr  bool
 	}{
 		{
-			name:     "round pan",
+			name:     "round 20 cm",
 			strategy: &RoundPanStrategy{},
 			measures: domain.Measures{Diameter: intPtr(20)},
-			wantArea: 157.07963267948966,
+			wantArea: 314.1592653589793,
 			wantErr:  false,
 		},
 		{
-			name:     "square pan",
+			name:     "square 20 cm",
 			strategy: &SquarePanStrategy{},
 			measures: domain.Measures{Edge: intPtr(20)},
-			wantArea: 200,
+			wantArea: 400,
 			wantErr:  false,
 		},
 		{
-			name:     "rectangular pan",
+			name:     "rectangular 20 x 30 cm",
 			strategy: &RectangularPanStrategy{},
 			measures: domain.Measures{Width: intPtr(20), Length: intPtr(30)},
-			wantArea: 300,
+			wantArea: 600,
 			wantErr:  false,
 		},
 		{
@@ -79,7 +79,8 @@ func TestPanStrategies(t *testing.T) {
 				return
 			}
 			assert.NoError(t, err)
-			assert.Equal(t, tt.wantArea, pan.DoughWeight)
+			assert.Equal(t, tt.name, pan.Name)
+			assert.Equal(t, tt.wantArea, pan.Area)
 		})
 	}
 }
