@@ -25,8 +25,8 @@ func TestRecipeIntegration(t *testing.T) {
 
 	service := application.NewRecipeService(
 		mysql.NewMySqlRecipeRepository(db.DB),
-		balancerapplication.NewDoughCalculatorService(),
-		balancerapplication.NewDoughBalancerService(),
+		balancerapplication.NewIngredientsCalculatorService(),
+		balancerapplication.NewIngredientsBalancerService(),
 	)
 
 	t.Run("Happy Path - retrieve RecipeAggregate successfully", func(t *testing.T) {
