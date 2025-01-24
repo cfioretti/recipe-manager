@@ -1,10 +1,10 @@
 package application
 
 import (
+	"github.com/google/uuid"
+
 	balancerdomain "github.com/cfioretti/recipe-manager/internal/ingredients-balancer/domain"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/domain"
-
-	"github.com/google/uuid"
 )
 
 type RecipeRepository interface {
