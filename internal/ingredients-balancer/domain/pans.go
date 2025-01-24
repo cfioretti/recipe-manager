@@ -6,9 +6,10 @@ type Pans struct {
 }
 
 type Pan struct {
-	Shape       string
-	Measures    Measures
-	DoughWeight float64
+	Shape    string
+	Measures Measures
+	Name     string
+	Area     float64
 }
 
 type Measures struct {

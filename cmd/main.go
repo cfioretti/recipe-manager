@@ -6,16 +6,16 @@ import (
 	"os"
 	"strings"
 
+	"github.com/gin-gonic/gin"
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/spf13/viper"
+
 	"github.com/cfioretti/recipe-manager/configs"
 	calculatorapplication "github.com/cfioretti/recipe-manager/internal/ingredients-balancer/application"
 	recipeapplication "github.com/cfioretti/recipe-manager/internal/recipe-manager/application"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/http"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/mysql"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/mysql/migrations"
-
-	"github.com/gin-gonic/gin"
-	_ "github.com/go-sql-driver/mysql"
-	"github.com/spf13/viper"
 )
 
 func main() {
