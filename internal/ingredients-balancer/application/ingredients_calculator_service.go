@@ -36,7 +36,7 @@ func (dc DoughCalculatorService) TotalDoughWeightByPans(body domain.Pans) (*doma
 		}
 
 		result.Pans = append(result.Pans, pan)
-		result.TotalDoughWeight += pan.Area / 2
+		result.TotalArea += pan.Area
 	}
 	return &result, nil
 }

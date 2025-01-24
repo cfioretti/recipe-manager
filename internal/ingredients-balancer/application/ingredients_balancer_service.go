@@ -17,18 +17,18 @@ func NewIngredientsBalancerService() *IngredientsBalancerService {
 }
 
 func (bs IngredientsBalancerService) Balance(recipe recipedomain.Recipe, pans domain.Pans) (*recipedomain.RecipeAggregate, error) {
-	if pans.TotalDoughWeight <= 0 || getFirstIngredientAmount(recipe.Dough.Ingredients) <= 0 {
+	if pans.TotalArea <= 0 || getFirstIngredientAmount(recipe.Dough.Ingredients) <= 0 {
 		return nil, errors.New("invalid dough weight")
 	}
 
-	percentVariation := pans.TotalDoughWeight * recipe.Dough.PercentVariation / 100
-	conversionRatio := (pans.TotalDoughWeight + percentVariation) / totalPercentage
+	totalDoughWeight := pans.TotalArea / 2
+	doughPercentVariation := totalDoughWeight * recipe.Dough.PercentVariation / 100
+	doughConversionRatio := (totalDoughWeight + doughPercentVariation) / totalPercentage
 	balancedDough := recipedomain.Dough{
 		PercentVariation: recipe.Dough.PercentVariation,
 		Ingredients:      make([]recipedomain.Ingredient, len(recipe.Dough.Ingredients)),
 	}
-	balancedDough.Ingredients = balanceIngredients(recipe.Dough.Ingredients, conversionRatio)
-
+	balancedDough.Ingredients = balanceIngredients(recipe.Dough.Ingredients, doughConversionRatio)
 	splitDoughs := calculateSplitDoughs(balancedDough, pans)
 
 	recipeAggregate := &recipedomain.RecipeAggregate{
@@ -46,9 +46,8 @@ func (bs IngredientsBalancerService) Balance(recipe recipedomain.Recipe, pans do
 func calculateSplitDoughs(totalDough recipedomain.Dough, pans domain.Pans) []recipedomain.Dough {
 	var splitDoughs []recipedomain.Dough
 
-	totalDoughWeight := pans.TotalDoughWeight
 	for _, pan := range pans.Pans {
-		ratio := (pan.Area / 2) / totalDoughWeight
+		ratio := pan.Area / pans.TotalArea
 
 		splitDough := recipedomain.Dough{
 			Name:        pan.Name,
