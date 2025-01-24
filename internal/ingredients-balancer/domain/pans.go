@@ -1,8 +1,8 @@
 package domain
 
 type Pans struct {
-	Pans             []Pan
-	TotalDoughWeight float64
+	Pans      []Pan
+	TotalArea float64
 }
 
 type Pan struct {

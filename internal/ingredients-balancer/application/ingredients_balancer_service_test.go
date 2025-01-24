@@ -12,19 +12,20 @@ import (
 
 func TestBalance(t *testing.T) {
 	tests := []struct {
-		name    string
-		recipe  recipedomain.Recipe
-		pans    domain.Pans
-		want    *recipedomain.RecipeAggregate
-		wantErr bool
+		name             string
+		recipe           recipedomain.Recipe
+		pans             domain.Pans
+		totalDoughWeight float64
+		wantErr          bool
 	}{
 		{
-			name: "valid recipe and pans",
+			name: "valid recipe and pans without percent variation",
 			recipe: recipedomain.Recipe{
 				Id:   1,
 				Uuid: uuid.New(),
 				Name: "Test Recipe",
 				Dough: recipedomain.Dough{
+					PercentVariation: 0,
 					Ingredients: []recipedomain.Ingredient{
 						{Name: "flour", Amount: 55.7},
 						{Name: "water", Amount: 41.6},
@@ -35,19 +36,53 @@ func TestBalance(t *testing.T) {
 				},
 			},
 			pans: domain.Pans{
-				TotalDoughWeight: 1000,
+				TotalArea: 1000,
 				Pans: []domain.Pan{
 					{
 						Shape: "round",
-						Area:  1000,
+						Area:  500,
 					},
 					{
 						Shape: "round",
+						Area:  500,
+					},
+				},
+			},
+			totalDoughWeight: 500,
+			wantErr:          false,
+		},
+		{
+			name: "valid recipe and pans with percent variation",
+			recipe: recipedomain.Recipe{
+				Id:   1,
+				Uuid: uuid.New(),
+				Name: "Test Recipe",
+				Dough: recipedomain.Dough{
+					PercentVariation: 10,
+					Ingredients: []recipedomain.Ingredient{
+						{Name: "flour", Amount: 55.7},
+						{Name: "water", Amount: 41.6},
+						{Name: "salt", Amount: 1.1},
+						{Name: "evoOil", Amount: 1.1},
+						{Name: "yeast", Amount: 0.5},
+					},
+				},
+			},
+			pans: domain.Pans{
+				TotalArea: 2000,
+				Pans: []domain.Pan{
+					{
+						Shape: "square",
+						Area:  1000,
+					},
+					{
+						Shape: "square",
 						Area:  1000,
 					},
 				},
 			},
-			wantErr: false,
+			totalDoughWeight: 1100,
+			wantErr:          false,
 		},
 		{
 			name: "invalid total dough weight",
@@ -59,7 +94,7 @@ func TestBalance(t *testing.T) {
 				},
 			},
 			pans: domain.Pans{
-				TotalDoughWeight: 0,
+				TotalArea: 0,
 			},
 			wantErr: true,
 		},
@@ -71,7 +106,7 @@ func TestBalance(t *testing.T) {
 				},
 			},
 			pans: domain.Pans{
-				TotalDoughWeight: 1000,
+				TotalArea: 1000,
 			},
 			wantErr: true,
 		},
@@ -96,10 +131,10 @@ func TestBalance(t *testing.T) {
 			for _, ing := range result.Dough.Ingredients {
 				totalWeight += ing.Amount
 			}
-			assert.InDelta(t, tt.pans.TotalDoughWeight, totalWeight, 0.1)
+			assert.InDelta(t, tt.totalDoughWeight, totalWeight, 0.1)
 
 			firstIngredientRatio := getFirstIngredientAmount(tt.recipe.Dough.Ingredients) / 100
-			expectedAmount := firstIngredientRatio * tt.pans.TotalDoughWeight
+			expectedAmount := firstIngredientRatio * tt.totalDoughWeight
 			actualAmount := getFirstIngredientAmount(result.Dough.Ingredients)
 			assert.InDelta(t, expectedAmount, actualAmount, 0.1)
 		})
@@ -119,7 +154,7 @@ func TestCalculateSplitDoughs(t *testing.T) {
 		}
 
 		pans := domain.Pans{
-			TotalDoughWeight: 1000.0,
+			TotalArea: 2000.0,
 			Pans: []domain.Pan{
 				{Area: 1000.0},
 				{Area: 600.0},
@@ -131,7 +166,7 @@ func TestCalculateSplitDoughs(t *testing.T) {
 		assert.Len(t, result, len(pans.Pans))
 
 		for i, pan := range pans.Pans {
-			ratio := (pan.Area / 2) / pans.TotalDoughWeight
+			ratio := pan.Area / pans.TotalArea
 			for j, ingredient := range totalDough.Ingredients {
 				expectedAmount := round(ingredient.Amount * ratio)
 				assert.InDelta(t, expectedAmount, result[i].Ingredients[j].Amount, 0.1)
@@ -148,9 +183,9 @@ func TestCalculateSplitDoughs(t *testing.T) {
 		}
 
 		pans := domain.Pans{
-			TotalDoughWeight: 1000.0,
+			TotalArea: 1000.0,
 			Pans: []domain.Pan{
-				{Area: 2000.0},
+				{Area: 1000.0},
 			},
 		}
 
@@ -170,8 +205,8 @@ func TestCalculateSplitDoughs(t *testing.T) {
 		}
 
 		pans := domain.Pans{
-			TotalDoughWeight: 0,
-			Pans:             []domain.Pan{},
+			TotalArea: 0,
+			Pans:      []domain.Pan{},
 		}
 
 		result := calculateSplitDoughs(totalDough, pans)

@@ -17,6 +17,22 @@ func TestTotalDoughWeightByPans(t *testing.T) {
 		wantErr  bool
 	}{
 		{
+			name: "success with single pan",
+			input: balancerdomain.Pans{
+				Pans: []balancerdomain.Pan{
+					{
+						Shape: "rectangular",
+						Measures: balancerdomain.Measures{
+							Width:  intPtr(30),
+							Length: intPtr(40),
+						},
+					},
+				},
+			},
+			wantArea: 1200,
+			wantErr:  false,
+		},
+		{
 			name: "success with multiple pans",
 			input: balancerdomain.Pans{
 				Pans: []balancerdomain.Pan{
@@ -34,7 +50,7 @@ func TestTotalDoughWeightByPans(t *testing.T) {
 					},
 				},
 			},
-			wantArea: (math.Pi*100 + 400) / 2,
+			wantArea: math.Pi*100 + 400,
 			wantErr:  false,
 		},
 		{
@@ -89,7 +105,7 @@ func TestTotalDoughWeightByPans(t *testing.T) {
 
 			assert.NoError(t, err)
 			assert.NotNil(t, result)
-			assert.InDelta(t, tt.wantArea, result.TotalDoughWeight, 0.001)
+			assert.InDelta(t, tt.wantArea, result.TotalArea, 0.001)
 		})
 	}
 }
