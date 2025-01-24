@@ -26,19 +26,24 @@ func (bs IngredientsBalancerService) Balance(recipe recipedomain.Recipe, pans do
 	doughConversionRatio := (totalDoughWeight + doughPercentVariation) / totalPercentage
 	balancedDough := recipedomain.Dough{
 		PercentVariation: recipe.Dough.PercentVariation,
-		Ingredients:      make([]recipedomain.Ingredient, len(recipe.Dough.Ingredients)),
+		Ingredients:      balanceIngredients(recipe.Dough.Ingredients, doughConversionRatio),
 	}
-	balancedDough.Ingredients = balanceIngredients(recipe.Dough.Ingredients, doughConversionRatio)
-	splitDoughs := calculateSplitDoughs(balancedDough, pans)
+
+	toppingConversionRatio := pans.TotalArea / recipe.Topping.ReferenceArea
+	balancedTopping := recipedomain.Topping{
+		ReferenceArea: recipe.Topping.ReferenceArea,
+		Ingredients:   balanceIngredients(recipe.Topping.Ingredients, toppingConversionRatio),
+	}
 
 	recipeAggregate := &recipedomain.RecipeAggregate{
 		Recipe: recipe,
 		SplitIngredients: recipedomain.SplitIngredients{
-			SplitDough:   splitDoughs,
+			SplitDough:   calculateSplitDoughs(balancedDough, pans),
 			SplitTopping: []recipedomain.Topping{},
 		},
 	}
 	recipeAggregate.Dough = balancedDough
+	recipeAggregate.Topping = balancedTopping
 
 	return recipeAggregate, nil
 }
