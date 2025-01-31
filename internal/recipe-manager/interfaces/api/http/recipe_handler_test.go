@@ -44,8 +44,8 @@ func TestRetrieveRecipeAggregate(t *testing.T) {
 		mockRecipeService := new(MockRecipeService)
 		mockRecipeService.On("Handle", recipeUuid, mock.Anything).Return(&recipeAggregate, nil)
 
-		controller := NewRecipeController(mockRecipeService)
-		controller.RetrieveRecipeAggregate(ctx)
+		handler := NewRecipeHandler(mockRecipeService)
+		handler.RetrieveRecipeAggregate(ctx)
 
 		assert.Equal(t, 200, ctx.Writer.Status())
 	})
@@ -60,8 +60,8 @@ func TestRetrieveRecipeAggregate(t *testing.T) {
 		)
 
 		mockRecipeService := new(MockRecipeService)
-		controller := NewRecipeController(mockRecipeService)
-		controller.RetrieveRecipeAggregate(ctx)
+		handler := NewRecipeHandler(mockRecipeService)
+		handler.RetrieveRecipeAggregate(ctx)
 
 		assert.Equal(t, 400, ctx.Writer.Status())
 	})
@@ -80,8 +80,8 @@ func TestRetrieveRecipeAggregate(t *testing.T) {
 		mockRecipeService := new(MockRecipeService)
 		mockRecipeService.On("Handle", recipeUuid, mock.Anything).Return(&recipeAggregate, errors.New("ERROR"))
 
-		controller := NewRecipeController(mockRecipeService)
-		controller.RetrieveRecipeAggregate(ctx)
+		handler := NewRecipeHandler(mockRecipeService)
+		handler.RetrieveRecipeAggregate(ctx)
 
 		assert.Equal(t, 400, ctx.Writer.Status())
 	})
@@ -91,10 +91,10 @@ func TestRetrieveRecipeAggregate(t *testing.T) {
 		ctx.Params = append(ctx.Params, gin.Param{Key: "uuid", Value: "WRONG UUID"})
 		mockRecipeService := new(MockRecipeService)
 
-		controller := NewRecipeController(mockRecipeService)
+		handler := NewRecipeHandler(mockRecipeService)
 
 		assert.Panics(t, func() {
-			controller.RetrieveRecipeAggregate(ctx)
+			handler.RetrieveRecipeAggregate(ctx)
 		})
 	})
 }

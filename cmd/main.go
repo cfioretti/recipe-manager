@@ -13,9 +13,9 @@ import (
 	"github.com/cfioretti/recipe-manager/configs"
 	calculatorapplication "github.com/cfioretti/recipe-manager/internal/ingredients-balancer/application"
 	recipeapplication "github.com/cfioretti/recipe-manager/internal/recipe-manager/application"
-	"github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/http"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/mysql"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/mysql/migrations"
+	"github.com/cfioretti/recipe-manager/internal/recipe-manager/interfaces/api/http"
 )
 
 func main() {
@@ -34,7 +34,7 @@ func main() {
 }
 
 func makeRouter(dB *sql.DB) *gin.Engine {
-	recipeController := http.NewRecipeController(
+	recipeHandler := http.NewRecipeHandler(
 		recipeapplication.NewRecipeService(
 			mysql.NewMySqlRecipeRepository(dB),
 			calculatorapplication.NewIngredientsCalculatorService(),
@@ -44,7 +44,7 @@ func makeRouter(dB *sql.DB) *gin.Engine {
 
 	router := gin.Default()
 	router.Use(corsMiddleware())
-	router.POST("/recipes/:uuid/aggregate", recipeController.RetrieveRecipeAggregate)
+	router.POST("/recipes/:uuid/aggregate", recipeHandler.RetrieveRecipeAggregate)
 	return router
 }
 
