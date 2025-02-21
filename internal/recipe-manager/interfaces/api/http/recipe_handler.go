@@ -24,22 +24,34 @@ func NewRecipeHandler(recipeService RecipeService) *RecipeHandler {
 }
 
 func (rc *RecipeHandler) RetrieveRecipeAggregate(ctx *gin.Context) {
-	recipeUuid := uuid.MustParse(ctx.Param("uuid"))
-	var requestBody dto.PanRequest
-	if err := ctx.ShouldBindJSON(&requestBody); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	recipeUuid, uuidErr := uuid.Parse(ctx.Param("uuid"))
+	if uuidErr != nil {
+		errorResponse(ctx, http.StatusBadRequest, "invalid UUID")
 		return
 	}
+
+	var requestBody dto.PanRequest
+	if err := ctx.ShouldBindJSON(&requestBody); err != nil {
+		errorResponse(ctx, http.StatusBadRequest, err.Error())
+		return
+	}
+
 	recipe, err := rc.recipeService.Handle(recipeUuid, requestBody.ToDomain())
 	if err != nil {
-		ctx.AbortWithStatusJSON(
-			http.StatusBadRequest,
-			gin.H{"error": err.Error()},
-		)
+		errorResponse(ctx, http.StatusBadRequest, err.Error())
+		return
 	}
+
 	aggregateResponse := dto.DomainToDTO(*recipe)
 	ctx.JSON(
 		http.StatusOK,
 		gin.H{"data": &aggregateResponse},
+	)
+}
+
+func errorResponse(ctx *gin.Context, statusCode int, errorMsg string) {
+	ctx.AbortWithStatusJSON(
+		statusCode,
+		gin.H{"error": errorMsg},
 	)
 }

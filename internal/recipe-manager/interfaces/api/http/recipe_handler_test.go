@@ -29,8 +29,7 @@ func TestRetrieveRecipeAggregate(t *testing.T) {
 	recipeUuid := uuid.New()
 
 	t.Run("HTTP Status 200 on success", func(t *testing.T) {
-		w := httptest.NewRecorder()
-		ctx, _ := gin.CreateTestContext(w)
+		ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
 		ctx.Params = append(ctx.Params, gin.Param{Key: "uuid", Value: recipeUuid.String()})
 		body := `{"pans": [{"shape": "round","measures": {"diameter": "100"}}]}`
 		ctx.Request = httptest.NewRequest(
@@ -86,15 +85,18 @@ func TestRetrieveRecipeAggregate(t *testing.T) {
 		assert.Equal(t, 400, ctx.Writer.Status())
 	})
 
-	t.Run("Panic with wrong UUID", func(t *testing.T) {
+	t.Run("HTTP Status 400 with wrong UUID", func(t *testing.T) {
 		ctx, _ := gin.CreateTestContext(httptest.NewRecorder())
 		ctx.Params = append(ctx.Params, gin.Param{Key: "uuid", Value: "WRONG UUID"})
 		mockRecipeService := new(MockRecipeService)
 
 		handler := NewRecipeHandler(mockRecipeService)
 
-		assert.Panics(t, func() {
-			handler.RetrieveRecipeAggregate(ctx)
-		})
+		defer func() {
+			if r := recover(); r != nil {
+				assert.Contains(t, r, "invalid UUID")
+			}
+		}()
+		handler.RetrieveRecipeAggregate(ctx)
 	})
 }
