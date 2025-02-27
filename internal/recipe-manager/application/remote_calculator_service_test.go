@@ -13,6 +13,8 @@ import (
 )
 
 func TestTotalDoughWeightByPans(t *testing.T) {
+	t.Skip("this test requires a running gRPC server")
+
 	grpcClient, err := client.NewDoughCalculatorClient("localhost:50051", 5*time.Second)
 	require.NoError(t, err)
 	defer grpcClient.Close()
