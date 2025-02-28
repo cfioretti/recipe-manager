@@ -13,31 +13,31 @@ import (
 	"github.com/cfioretti/recipe-manager/configs"
 	calculatorapplication "github.com/cfioretti/recipe-manager/internal/ingredients-balancer/application"
 	recipeapplication "github.com/cfioretti/recipe-manager/internal/recipe-manager/application"
+	"github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/grpc/client"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/mysql"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/mysql/migrations"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/interfaces/api/http"
 )
 
 func main() {
-	setConfigs()
-	config := configs.NewDBConfig()
-	db, err := newDBConnection(config)
+	setEnvConfigs()
+	db := loadDBConfig()
+	calculatorService, err := initializeCalculatorService()
 	if err != nil {
-		panic(fmt.Errorf("failed to connect to database: %v", err))
+		calculatorService = calculatorapplication.NewIngredientsCalculatorService()
 	}
-
-	router := makeRouter(db)
+	router := makeRouter(db, calculatorService)
 	port := viper.GetInt("server.port")
 	if err := router.Run(fmt.Sprintf(":%d", port)); err != nil {
 		panic(fmt.Errorf("failed to start server: %v", err))
 	}
 }
 
-func makeRouter(dB *sql.DB) *gin.Engine {
+func makeRouter(dB *sql.DB, calculatorService recipeapplication.CalculatorService) *gin.Engine {
 	recipeHandler := http.NewRecipeHandler(
 		recipeapplication.NewRecipeService(
 			mysql.NewMySqlRecipeRepository(dB),
-			calculatorapplication.NewIngredientsCalculatorService(),
+			calculatorService,
 			calculatorapplication.NewIngredientsBalancerService(),
 		),
 	)
@@ -62,6 +62,36 @@ func corsMiddleware() gin.HandlerFunc {
 	}
 }
 
+func initializeCalculatorService() (recipeapplication.CalculatorService, error) {
+	grpcClient, err := loadGrpcConfig()
+	if err != nil {
+		return nil, err
+	}
+	return recipeapplication.NewRemoteDoughCalculatorService(grpcClient), nil
+}
+
+func loadGrpcConfig() (*client.DoughCalculatorClient, error) {
+	grpcConfig := configs.LoadGRPCConfig()
+
+	ingredientsBalancerClient, err := client.NewDoughCalculatorClient(
+		grpcConfig.IngredientsBalancerAddress,
+		grpcConfig.Timeout,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create grpc client: %w", err)
+	}
+	return ingredientsBalancerClient, nil
+}
+
+func loadDBConfig() *sql.DB {
+	config := configs.NewDBConfig()
+	db, err := newDBConnection(config)
+	if err != nil {
+		panic(fmt.Errorf("failed to connect to database: %v", err))
+	}
+	return db
+}
+
 func newDBConnection(config *configs.DBConfig) (*sql.DB, error) {
 	if err := migrations.RunMigrations(config.DSN(), "migrations", viper.GetString("database.dbName")); err != nil {
 		return nil, fmt.Errorf("error executing db migrations: %w", err)
@@ -79,7 +109,7 @@ func newDBConnection(config *configs.DBConfig) (*sql.DB, error) {
 	return db, nil
 }
 
-func setConfigs() {
+func setEnvConfigs() {
 	configName := os.Getenv("CONFIG_NAME")
 	if configName == "" {
 		configName = "props"

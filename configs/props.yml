@@ -10,3 +10,7 @@ database:
   username: "user"
   password: "pizzamaker"
   dbName: "pizzamaker"
+
+grpc:
+  host: "localhost"
+  port: 50051
