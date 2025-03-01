@@ -1,12 +1,12 @@
 server:
-  port: 8088
+  port: 8080
 
 local:
   fe-host: "http://localhost:3000"
 
 database:
   host: "localhost"
-  port: 13306
+  port: 3306
   username: "user"
   password: "pizzamaker"
   dbName: "pizzamaker"

@@ -15,7 +15,6 @@ import (
 	recipeapplication "github.com/cfioretti/recipe-manager/internal/recipe-manager/application"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/grpc/client"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/mysql"
-	"github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/mysql/migrations"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/interfaces/api/http"
 )
 
@@ -93,10 +92,6 @@ func loadDBConfig() *sql.DB {
 }
 
 func newDBConnection(config *configs.DBConfig) (*sql.DB, error) {
-	if err := migrations.RunMigrations(config.DSN(), "migrations", viper.GetString("database.dbName")); err != nil {
-		return nil, fmt.Errorf("error executing db migrations: %w", err)
-	}
-
 	db, err := sql.Open("mysql", config.DSN())
 	if err != nil {
 		return nil, fmt.Errorf("error opening database: %w", err)

@@ -1,4 +1,22 @@
 services:
+  recipe-manager:
+    build:
+      context: ../recipe-manager
+      dockerfile: deployments/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - INGREDIENTS_BALANCER_ADDR=ingredients-balancer:50051
+      - CONFIG_PATH=/app/configs
+      - DATABASE_HOST=mysql
+      - DATABASE_PORT=3306
+      - DATABASE_DBNAME=pizzamaker
+      - DATABASE_USER=user
+      - DATABASE_PASSWORD=pizzamaker
+    depends_on:
+      mysql:
+        condition: service_healthy
+
   mysql:
     image: mysql:8.0
     container_name: mysql_db
@@ -9,10 +27,15 @@ services:
       MYSQL_USER: user
       MYSQL_PASSWORD: pizzamaker
     ports:
-      - "13306:3306"
+      - "3306:3306"
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "user", "--password=pizzamaker" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     volumes:
       - mysql_data:/var/lib/mysql
-#      - ../migrations:/docker-entrypoint-initdb.d
+      - ../migrations:/docker-entrypoint-initdb.d
 
 volumes:
   mysql_data:
