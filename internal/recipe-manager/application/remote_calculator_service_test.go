@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	balancerdomain "github.com/cfioretti/recipe-manager/internal/ingredients-balancer/domain"
+	bdomain "github.com/cfioretti/recipe-manager/internal/ingredients-balancer/domain"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/application"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/grpc/client"
 )
@@ -22,11 +22,11 @@ func TestTotalDoughWeightByPans(t *testing.T) {
 	service := application.NewRemoteDoughCalculatorService(grpcClient)
 
 	diameter := 28
-	pans := balancerdomain.Pans{
-		Pans: []balancerdomain.Pan{
+	pans := bdomain.Pans{
+		Pans: []bdomain.Pan{
 			{
 				Shape: "round",
-				Measures: balancerdomain.Measures{
+				Measures: bdomain.Measures{
 					Diameter: &diameter,
 				},
 				Name: "round 28 cm",

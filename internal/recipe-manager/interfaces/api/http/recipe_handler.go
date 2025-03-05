@@ -6,13 +6,13 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 
-	balancerdomain "github.com/cfioretti/recipe-manager/internal/ingredients-balancer/domain"
+	bdomain "github.com/cfioretti/recipe-manager/internal/ingredients-balancer/domain"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/domain"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/interfaces/api/http/dto"
 )
 
 type RecipeService interface {
-	Handle(uuid.UUID, balancerdomain.Pans) (*domain.RecipeAggregate, error)
+	Handle(uuid.UUID, bdomain.Pans) (*domain.RecipeAggregate, error)
 }
 
 type RecipeHandler struct {

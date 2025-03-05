@@ -6,23 +6,23 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	balancerdomain "github.com/cfioretti/recipe-manager/internal/ingredients-balancer/domain"
+	bdomain "github.com/cfioretti/recipe-manager/internal/ingredients-balancer/domain"
 )
 
 func TestTotalDoughWeightByPans(t *testing.T) {
 	tests := []struct {
 		name     string
-		input    balancerdomain.Pans
+		input    bdomain.Pans
 		wantArea float64
 		wantErr  bool
 	}{
 		{
 			name: "success with single pan",
-			input: balancerdomain.Pans{
-				Pans: []balancerdomain.Pan{
+			input: bdomain.Pans{
+				Pans: []bdomain.Pan{
 					{
 						Shape: "rectangular",
-						Measures: balancerdomain.Measures{
+						Measures: bdomain.Measures{
 							Width:  intPtr(30),
 							Length: intPtr(40),
 						},
@@ -34,17 +34,17 @@ func TestTotalDoughWeightByPans(t *testing.T) {
 		},
 		{
 			name: "success with multiple pans",
-			input: balancerdomain.Pans{
-				Pans: []balancerdomain.Pan{
+			input: bdomain.Pans{
+				Pans: []bdomain.Pan{
 					{
 						Shape: "round",
-						Measures: balancerdomain.Measures{
+						Measures: bdomain.Measures{
 							Diameter: intPtr(20),
 						},
 					},
 					{
 						Shape: "square",
-						Measures: balancerdomain.Measures{
+						Measures: bdomain.Measures{
 							Edge: intPtr(20),
 						},
 					},
@@ -55,11 +55,11 @@ func TestTotalDoughWeightByPans(t *testing.T) {
 		},
 		{
 			name: "invalid shape",
-			input: balancerdomain.Pans{
-				Pans: []balancerdomain.Pan{
+			input: bdomain.Pans{
+				Pans: []bdomain.Pan{
 					{
 						Shape: "triangle",
-						Measures: balancerdomain.Measures{
+						Measures: bdomain.Measures{
 							Width:  intPtr(20),
 							Length: intPtr(30),
 						},
@@ -70,11 +70,11 @@ func TestTotalDoughWeightByPans(t *testing.T) {
 		},
 		{
 			name: "invalid measures",
-			input: balancerdomain.Pans{
-				Pans: []balancerdomain.Pan{
+			input: bdomain.Pans{
+				Pans: []bdomain.Pan{
 					{
 						Shape: "round",
-						Measures: balancerdomain.Measures{
+						Measures: bdomain.Measures{
 							Diameter: nil,
 						},
 					},
@@ -84,8 +84,8 @@ func TestTotalDoughWeightByPans(t *testing.T) {
 		},
 		{
 			name: "empty pans",
-			input: balancerdomain.Pans{
-				Pans: []balancerdomain.Pan{},
+			input: bdomain.Pans{
+				Pans: []bdomain.Pan{},
 			},
 			wantArea: 0,
 			wantErr:  false,

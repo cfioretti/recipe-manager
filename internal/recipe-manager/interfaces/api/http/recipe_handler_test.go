@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
-	balancerdomain "github.com/cfioretti/recipe-manager/internal/ingredients-balancer/domain"
+	bdomain "github.com/cfioretti/recipe-manager/internal/ingredients-balancer/domain"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/domain"
 )
 
@@ -20,7 +20,7 @@ type MockRecipeService struct {
 	mock.Mock
 }
 
-func (m *MockRecipeService) Handle(recipeUuid uuid.UUID, requestBody balancerdomain.Pans) (*domain.RecipeAggregate, error) {
+func (m *MockRecipeService) Handle(recipeUuid uuid.UUID, requestBody bdomain.Pans) (*domain.RecipeAggregate, error) {
 	args := m.Called(recipeUuid, requestBody)
 	return args.Get(0).(*domain.RecipeAggregate), args.Error(1)
 }

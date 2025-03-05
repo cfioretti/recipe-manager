@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	balancerapplication "github.com/cfioretti/recipe-manager/internal/ingredients-balancer/application"
-	balancerdomain "github.com/cfioretti/recipe-manager/internal/ingredients-balancer/domain"
+	bdomain "github.com/cfioretti/recipe-manager/internal/ingredients-balancer/domain"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/application"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/domain"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/mysql"
@@ -68,23 +68,23 @@ func TestRecipeIntegration(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		pans := balancerdomain.Pans{
-			Pans: []balancerdomain.Pan{
+		pans := bdomain.Pans{
+			Pans: []bdomain.Pan{
 				{
 					Shape: "round",
-					Measures: balancerdomain.Measures{
+					Measures: bdomain.Measures{
 						Diameter: intPtr(50),
 					},
 				},
 				{
 					Shape: "square",
-					Measures: balancerdomain.Measures{
+					Measures: bdomain.Measures{
 						Edge: intPtr(20),
 					},
 				},
 				{
 					Shape: "rectangular",
-					Measures: balancerdomain.Measures{
+					Measures: bdomain.Measures{
 						Width:  intPtr(30),
 						Length: intPtr(40),
 					},
@@ -157,11 +157,11 @@ func TestRecipeIntegration(t *testing.T) {
 	t.Run("Error - Recipe not found in repository", func(t *testing.T) {
 		nonExistentUuid := uuid.New()
 
-		pans := balancerdomain.Pans{
-			Pans: []balancerdomain.Pan{
+		pans := bdomain.Pans{
+			Pans: []bdomain.Pan{
 				{
 					Shape: "round",
-					Measures: balancerdomain.Measures{
+					Measures: bdomain.Measures{
 						Diameter: intPtr(50),
 					},
 				},
@@ -200,11 +200,11 @@ func TestRecipeIntegration(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		pans := balancerdomain.Pans{
-			Pans: []balancerdomain.Pan{
+		pans := bdomain.Pans{
+			Pans: []bdomain.Pan{
 				{
 					Shape: "triangle",
-					Measures: balancerdomain.Measures{
+					Measures: bdomain.Measures{
 						Diameter: nil,
 					},
 				},

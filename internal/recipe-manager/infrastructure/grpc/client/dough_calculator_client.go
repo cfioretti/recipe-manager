@@ -7,7 +7,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	balancerdomain "github.com/cfioretti/recipe-manager/internal/ingredients-balancer/domain"
+	bdomain "github.com/cfioretti/recipe-manager/internal/ingredients-balancer/domain"
 	pb "github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/grpc/proto/generated"
 )
 
@@ -38,7 +38,7 @@ func (c *DoughCalculatorClient) Close() error {
 	return c.conn.Close()
 }
 
-func (c *DoughCalculatorClient) TotalDoughWeightByPans(pans balancerdomain.Pans) (*balancerdomain.Pans, error) {
+func (c *DoughCalculatorClient) TotalDoughWeightByPans(pans bdomain.Pans) (*bdomain.Pans, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), c.timeout)
 	defer cancel()
 
@@ -54,7 +54,7 @@ func (c *DoughCalculatorClient) TotalDoughWeightByPans(pans balancerdomain.Pans)
 	return &result, nil
 }
 
-func toProtoMessage(domainPans *balancerdomain.Pans) *pb.PansProto {
+func toProtoMessage(domainPans *bdomain.Pans) *pb.PansProto {
 	panProtos := make([]*pb.PanProto, 0, len(domainPans.Pans))
 
 	for _, p := range domainPans.Pans {
@@ -78,13 +78,13 @@ func toProtoMessage(domainPans *balancerdomain.Pans) *pb.PansProto {
 	}
 }
 
-func toDomainPans(protoMessage *pb.PansProto) balancerdomain.Pans {
-	pans := make([]balancerdomain.Pan, 0, len(protoMessage.Pans))
+func toDomainPans(protoMessage *pb.PansProto) bdomain.Pans {
+	pans := make([]bdomain.Pan, 0, len(protoMessage.Pans))
 
 	for _, p := range protoMessage.Pans {
-		pan := balancerdomain.Pan{
+		pan := bdomain.Pan{
 			Shape: p.Shape,
-			Measures: balancerdomain.Measures{
+			Measures: bdomain.Measures{
 				Diameter: toPointer(p.Measures.Diameter),
 				Edge:     toPointer(p.Measures.Edge),
 				Width:    toPointer(p.Measures.Width),
@@ -96,7 +96,7 @@ func toDomainPans(protoMessage *pb.PansProto) balancerdomain.Pans {
 		pans = append(pans, pan)
 	}
 
-	return balancerdomain.Pans{
+	return bdomain.Pans{
 		Pans:      pans,
 		TotalArea: protoMessage.TotalArea,
 	}
