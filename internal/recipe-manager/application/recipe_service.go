@@ -11,18 +11,18 @@ type RecipeRepository interface {
 	GetRecipeByUuid(uuid.UUID) (*domain.Recipe, error)
 }
 
-type RecipeService struct {
-	repository RecipeRepository
-	calculator CalculatorService
-	balancer   BalancerService
-}
-
 type CalculatorService interface {
 	TotalDoughWeightByPans(bdomain.Pans) (*bdomain.Pans, error)
 }
 
 type BalancerService interface {
 	Balance(domain.Recipe, bdomain.Pans) (*domain.RecipeAggregate, error)
+}
+
+type RecipeService struct {
+	repository RecipeRepository
+	calculator CalculatorService
+	balancer   BalancerService
 }
 
 func NewRecipeService(repository RecipeRepository, calculator CalculatorService, balancer BalancerService) *RecipeService {

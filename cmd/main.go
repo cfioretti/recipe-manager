@@ -11,8 +11,8 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/cfioretti/recipe-manager/configs"
-	calculatorapplication "github.com/cfioretti/recipe-manager/internal/ingredients-balancer/application"
-	recipeapplication "github.com/cfioretti/recipe-manager/internal/recipe-manager/application"
+	capplication "github.com/cfioretti/recipe-manager/internal/ingredients-balancer/application"
+	rapplication "github.com/cfioretti/recipe-manager/internal/recipe-manager/application"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/grpc/client"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/mysql"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/interfaces/api/http"
@@ -23,7 +23,7 @@ func main() {
 	db := loadDBConfig()
 	calculatorService, err := initializeCalculatorService()
 	if err != nil {
-		calculatorService = calculatorapplication.NewIngredientsCalculatorService()
+		calculatorService = capplication.NewIngredientsCalculatorService()
 	}
 	router := makeRouter(db, calculatorService)
 	port := viper.GetInt("server.port")
@@ -32,12 +32,12 @@ func main() {
 	}
 }
 
-func makeRouter(dB *sql.DB, calculatorService recipeapplication.CalculatorService) *gin.Engine {
+func makeRouter(dB *sql.DB, calculatorService rapplication.CalculatorService) *gin.Engine {
 	recipeHandler := http.NewRecipeHandler(
-		recipeapplication.NewRecipeService(
+		rapplication.NewRecipeService(
 			mysql.NewMySqlRecipeRepository(dB),
 			calculatorService,
-			calculatorapplication.NewIngredientsBalancerService(),
+			capplication.NewIngredientsBalancerService(),
 		),
 	)
 
@@ -61,15 +61,15 @@ func corsMiddleware() gin.HandlerFunc {
 	}
 }
 
-func initializeCalculatorService() (recipeapplication.CalculatorService, error) {
+func initializeCalculatorService() (rapplication.CalculatorService, error) {
 	grpcClient, err := loadGrpcConfig()
 	if err != nil {
 		return nil, err
 	}
-	return recipeapplication.NewRemoteDoughCalculatorService(grpcClient), nil
+	return rapplication.NewRemoteDoughCalculatorService(grpcClient), nil
 }
 
-func loadGrpcConfig() (*client.DoughCalculatorClient, error) {
+func loadGrpcConfig() (*client.CalculatorClient, error) {
 	grpcConfig := configs.LoadGRPCConfig()
 
 	ingredientsBalancerClient, err := client.NewDoughCalculatorClient(

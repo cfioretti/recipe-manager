@@ -11,14 +11,14 @@ import (
 	pb "github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/grpc/proto/generated"
 )
 
-type DoughCalculatorClient struct {
+type CalculatorClient struct {
 	client     pb.DoughCalculatorClient
 	conn       *grpc.ClientConn
 	serverAddr string
 	timeout    time.Duration
 }
 
-func NewDoughCalculatorClient(serverAddr string, timeout time.Duration) (*DoughCalculatorClient, error) {
+func NewDoughCalculatorClient(serverAddr string, timeout time.Duration) (*CalculatorClient, error) {
 	conn, err := grpc.Dial(serverAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, err
@@ -26,7 +26,7 @@ func NewDoughCalculatorClient(serverAddr string, timeout time.Duration) (*DoughC
 
 	client := pb.NewDoughCalculatorClient(conn)
 
-	return &DoughCalculatorClient{
+	return &CalculatorClient{
 		client:     client,
 		conn:       conn,
 		serverAddr: serverAddr,
@@ -34,11 +34,11 @@ func NewDoughCalculatorClient(serverAddr string, timeout time.Duration) (*DoughC
 	}, nil
 }
 
-func (c *DoughCalculatorClient) Close() error {
+func (c *CalculatorClient) Close() error {
 	return c.conn.Close()
 }
 
-func (c *DoughCalculatorClient) TotalDoughWeightByPans(pans bdomain.Pans) (*bdomain.Pans, error) {
+func (c *CalculatorClient) TotalDoughWeightByPans(pans bdomain.Pans) (*bdomain.Pans, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), c.timeout)
 	defer cancel()
 
