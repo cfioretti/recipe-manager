@@ -19,7 +19,7 @@ type CalculatorClient struct {
 }
 
 func NewDoughCalculatorClient(serverAddr string, timeout time.Duration) (*CalculatorClient, error) {
-	conn, err := grpc.Dial(serverAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.NewClient(serverAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, err
 	}

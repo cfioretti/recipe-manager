@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 
-	balancerapplication "github.com/cfioretti/recipe-manager/internal/ingredients-balancer/application"
+	bapplication "github.com/cfioretti/recipe-manager/internal/ingredients-balancer/application"
 	bdomain "github.com/cfioretti/recipe-manager/internal/ingredients-balancer/domain"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/application"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/domain"
@@ -21,12 +21,14 @@ func TestRecipeIntegration(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer db.Cleanup(ctx)
+	defer func(db *TestDatabase, ctx context.Context) {
+		_ = db.Cleanup(ctx)
+	}(db, ctx)
 
 	service := application.NewRecipeService(
 		mysql.NewMySqlRecipeRepository(db.DB),
-		balancerapplication.NewIngredientsCalculatorService(),
-		balancerapplication.NewIngredientsBalancerService(),
+		bapplication.NewIngredientsCalculatorService(),
+		bapplication.NewIngredientsBalancerService(),
 	)
 
 	t.Run("Happy Path - retrieve RecipeAggregate successfully", func(t *testing.T) {
@@ -185,7 +187,7 @@ func TestRecipeIntegration(t *testing.T) {
 				{Name: "yeast", Amount: 2},
 			},
 		}
-		doughJSON, err := json.Marshal(dough)
+		doughJSON, _ := json.Marshal(dough)
 		testRecipe := &domain.Recipe{
 			Uuid:        uuid.New(),
 			Name:        "Test Recipe",

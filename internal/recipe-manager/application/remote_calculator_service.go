@@ -2,14 +2,18 @@ package application
 
 import (
 	bdomain "github.com/cfioretti/recipe-manager/internal/ingredients-balancer/domain"
-	"github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/grpc/client"
 )
 
-type RemoteCalculatorService struct {
-	client *client.CalculatorClient
+type CalculatorClient interface {
+	TotalDoughWeightByPans(pans bdomain.Pans) (*bdomain.Pans, error)
+	Close() error
 }
 
-func NewRemoteDoughCalculatorService(client *client.CalculatorClient) *RemoteCalculatorService {
+type RemoteCalculatorService struct {
+	client CalculatorClient
+}
+
+func NewRemoteDoughCalculatorService(client CalculatorClient) *RemoteCalculatorService {
 	return &RemoteCalculatorService{
 		client: client,
 	}
