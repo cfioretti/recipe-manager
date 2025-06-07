@@ -23,7 +23,7 @@ func main() {
 	db := loadDBConfig()
 	calculatorService, err := initializeCalculatorService()
 	if err != nil {
-		calculatorService = capplication.NewIngredientsCalculatorService()
+		calculatorService = capplication.NewCalculatorService()
 	}
 	router := makeRouter(db, calculatorService)
 	port := viper.GetInt("server.port")
@@ -62,24 +62,24 @@ func corsMiddleware() gin.HandlerFunc {
 }
 
 func initializeCalculatorService() (rapplication.CalculatorService, error) {
-	grpcClient, err := loadGrpcConfig()
+	calculatorClient, err := loadCalculatorGrpcClient()
 	if err != nil {
 		return nil, err
 	}
-	return rapplication.NewRemoteDoughCalculatorService(grpcClient), nil
+	return rapplication.NewRemoteDoughCalculatorService(calculatorClient), nil
 }
 
-func loadGrpcConfig() (*client.CalculatorClient, error) {
-	grpcConfig := configs.LoadGRPCConfig()
+func loadCalculatorGrpcClient() (*client.CalculatorClient, error) {
+	calculatorGRPCConfig := configs.LoadCalculatorGRPCConfig()
 
-	ingredientsBalancerClient, err := client.NewDoughCalculatorClient(
-		grpcConfig.IngredientsBalancerAddress,
-		grpcConfig.Timeout,
+	calculatorClient, err := client.NewDoughCalculatorClient(
+		calculatorGRPCConfig.Address,
+		calculatorGRPCConfig.Timeout,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create grpc client: %w", err)
 	}
-	return ingredientsBalancerClient, nil
+	return calculatorClient, nil
 }
 
 func loadDBConfig() *sql.DB {

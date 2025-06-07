@@ -9,22 +9,22 @@ import (
 )
 
 type GRPCConfig struct {
-	IngredientsBalancerAddress string
-	Timeout                    time.Duration
+	Address string
+	Timeout time.Duration
 }
 
-func LoadGRPCConfig() GRPCConfig {
-	ingredientsBalancerAddr := os.Getenv("INGREDIENTS_BALANCER_ADDR")
-	if ingredientsBalancerAddr == "" {
+func LoadCalculatorGRPCConfig() GRPCConfig {
+	calculatorAddr := os.Getenv("CALCULATOR_ADDR")
+	if calculatorAddr == "" {
 		host := viper.GetString("grpc.host")
-		port := viper.GetString("grpc.port")
-		ingredientsBalancerAddr = host + ":" + port
+		port := viper.GetString("grpc.calculator.port")
+		calculatorAddr = host + ":" + port
 	}
 	timeout := 5 * time.Second
-	log.Println("ingredientsBalancerAddr: ", ingredientsBalancerAddr)
+	log.Println("calculatorAddr: ", calculatorAddr)
 
 	return GRPCConfig{
-		IngredientsBalancerAddress: ingredientsBalancerAddr,
-		Timeout:                    timeout,
+		Address: calculatorAddr,
+		Timeout: timeout,
 	}
 }

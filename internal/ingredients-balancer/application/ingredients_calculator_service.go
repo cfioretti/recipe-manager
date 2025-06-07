@@ -9,7 +9,7 @@ import (
 
 type DoughCalculatorService struct{}
 
-func NewIngredientsCalculatorService() *DoughCalculatorService {
+func NewCalculatorService() *DoughCalculatorService {
 	return &DoughCalculatorService{}
 }
 

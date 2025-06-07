@@ -13,4 +13,5 @@ database:
 
 grpc:
   host: "localhost"
-  port: 50051
+  calculator:
+    port: 50051

@@ -6,7 +6,8 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - INGREDIENTS_BALANCER_ADDR=ingredients-balancer:50051
+      - CALCULATOR_ADDR=calculator:50051
+      - INGREDIENTS_BALANCER_ADDR=ingredients-balancer:50052
       - CONFIG_PATH=/app/configs
       - DATABASE_HOST=mysql
       - DATABASE_PORT=3306

@@ -27,7 +27,7 @@ func TestRecipeIntegration(t *testing.T) {
 
 	service := application.NewRecipeService(
 		mysql.NewMySqlRecipeRepository(db.DB),
-		bapplication.NewIngredientsCalculatorService(),
+		bapplication.NewCalculatorService(),
 		bapplication.NewIngredientsBalancerService(),
 	)
 
