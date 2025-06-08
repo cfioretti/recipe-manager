@@ -15,3 +15,5 @@ grpc:
   host: "localhost"
   calculator:
     port: 50051
+  balancer:
+    port: 50052

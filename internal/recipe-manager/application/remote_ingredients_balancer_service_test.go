@@ -17,7 +17,7 @@ import (
 func TestBalance(t *testing.T) {
 	t.Skip("this test requires a running gRPC server")
 
-	grpcClient, err := client.NewIngredientsBalancerClient("localhost:50051", 5*time.Second)
+	grpcClient, err := client.NewIngredientsBalancerClient("localhost:50052", 5*time.Second)
 	require.NoError(t, err)
 	defer grpcClient.Close()
 
