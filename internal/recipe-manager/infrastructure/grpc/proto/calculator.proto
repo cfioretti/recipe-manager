@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package calculator;
+package proto;
 
-option go_package = "github.com/cfioretti/ingredients-balancer/pkg/infrastructure/grpc/proto";
+option go_package = "github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/grpc/proto/generated";
 
 service DoughCalculator {
   rpc TotalDoughWeightByPans(PansRequest) returns (PansResponse) {}

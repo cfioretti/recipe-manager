@@ -1,0 +1,86 @@
+syntax = "proto3";
+
+package proto;
+
+option go_package = "github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/grpc/proto/generated";
+
+service IngredientsBalancer {
+  rpc Balance(BalanceRequest) returns (BalanceResponse) {}
+}
+
+message Ingredient {
+  string name = 1;
+  double amount = 2;
+}
+
+message Dough {
+  string name = 1;
+  double percent_variation = 2;
+  repeated Ingredient ingredients = 3;
+}
+
+message Topping {
+  string name = 1;
+  double reference_area = 2;
+  repeated Ingredient ingredients = 3;
+}
+
+message Step {
+  int32 id = 1;
+  int32 step_number = 2;
+  string description = 3;
+}
+
+message Steps {
+  int32 recipe_id = 1;
+  repeated Step steps = 2;
+}
+
+message Recipe {
+  int32 id = 1;
+  string uuid = 2;
+  string name = 3;
+  string description = 4;
+  string author = 5;
+  Dough dough = 6;
+  Topping topping = 7;
+  Steps steps = 8;
+}
+
+message Measures {
+  optional int32 diameter = 1;
+  optional int32 edge = 2;
+  optional int32 width = 3;
+  optional int32 length = 4;
+}
+
+message Pan {
+  string shape = 1;
+  Measures measures = 2;
+  string name = 3;
+  double area = 4;
+}
+
+message Pans {
+  repeated Pan pans = 1;
+  double total_area = 2;
+}
+
+message SplitIngredients {
+  repeated Dough split_dough = 1;
+  repeated Topping split_topping = 2;
+}
+
+message RecipeAggregate {
+  Recipe recipe = 1;
+  SplitIngredients split_ingredients = 2;
+}
+
+message BalanceRequest {
+  Recipe recipe = 1;
+  Pans pans = 2;
+}
+
+message BalanceResponse {
+  RecipeAggregate recipe_aggregate = 1;
+}
