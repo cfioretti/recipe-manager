@@ -35,7 +35,7 @@ func NewDoughCalculatorClient(cc grpc.ClientConnInterface) DoughCalculatorClient
 
 func (c *doughCalculatorClient) TotalDoughWeightByPans(ctx context.Context, in *PansRequest, opts ...grpc.CallOption) (*PansResponse, error) {
 	out := new(PansResponse)
-	err := c.cc.Invoke(ctx, "/proto.DoughCalculator/TotalDoughWeightByPans", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/calculator.DoughCalculator/TotalDoughWeightByPans", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +80,7 @@ func _DoughCalculator_TotalDoughWeightByPans_Handler(srv interface{}, ctx contex
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/proto.DoughCalculator/TotalDoughWeightByPans",
+		FullMethod: "/calculator.DoughCalculator/TotalDoughWeightByPans",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(DoughCalculatorServer).TotalDoughWeightByPans(ctx, req.(*PansRequest))
@@ -92,7 +92,7 @@ func _DoughCalculator_TotalDoughWeightByPans_Handler(srv interface{}, ctx contex
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var DoughCalculator_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "proto.DoughCalculator",
+	ServiceName: "calculator.DoughCalculator",
 	HandlerType: (*DoughCalculatorServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{

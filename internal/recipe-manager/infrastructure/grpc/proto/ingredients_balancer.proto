@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package proto;
+package ingredients_balancer;
 
 option go_package = "github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/grpc/proto/generated";
 

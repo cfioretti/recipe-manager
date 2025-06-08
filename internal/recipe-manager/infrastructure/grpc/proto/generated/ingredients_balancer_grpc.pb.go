@@ -35,7 +35,7 @@ func NewIngredientsBalancerClient(cc grpc.ClientConnInterface) IngredientsBalanc
 
 func (c *ingredientsBalancerClient) Balance(ctx context.Context, in *BalanceRequest, opts ...grpc.CallOption) (*BalanceResponse, error) {
 	out := new(BalanceResponse)
-	err := c.cc.Invoke(ctx, "/proto.IngredientsBalancer/Balance", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/ingredients_balancer.IngredientsBalancer/Balance", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +80,7 @@ func _IngredientsBalancer_Balance_Handler(srv interface{}, ctx context.Context, 
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/proto.IngredientsBalancer/Balance",
+		FullMethod: "/ingredients_balancer.IngredientsBalancer/Balance",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(IngredientsBalancerServer).Balance(ctx, req.(*BalanceRequest))
@@ -92,7 +92,7 @@ func _IngredientsBalancer_Balance_Handler(srv interface{}, ctx context.Context, 
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var IngredientsBalancer_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "proto.IngredientsBalancer",
+	ServiceName: "ingredients_balancer.IngredientsBalancer",
 	HandlerType: (*IngredientsBalancerServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
