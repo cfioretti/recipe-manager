@@ -25,19 +25,23 @@ func main() {
 	if err != nil {
 		calculatorService = capplication.NewCalculatorService()
 	}
-	router := makeRouter(db, calculatorService)
+	balancerService, err := initializeBalancerService()
+	if err != nil {
+		balancerService = capplication.NewIngredientsBalancerService()
+	}
+	router := makeRouter(db, calculatorService, balancerService)
 	port := viper.GetInt("server.port")
 	if err := router.Run(fmt.Sprintf(":%d", port)); err != nil {
 		panic(fmt.Errorf("failed to start server: %v", err))
 	}
 }
 
-func makeRouter(dB *sql.DB, calculatorService rapplication.CalculatorService) *gin.Engine {
+func makeRouter(dB *sql.DB, calculatorService rapplication.CalculatorService, balanceService rapplication.BalancerService) *gin.Engine {
 	recipeHandler := http.NewRecipeHandler(
 		rapplication.NewRecipeService(
 			mysql.NewMySqlRecipeRepository(dB),
 			calculatorService,
-			capplication.NewIngredientsBalancerService(),
+			balanceService,
 		),
 	)
 
@@ -77,9 +81,30 @@ func loadCalculatorGrpcClient() (*client.CalculatorClient, error) {
 		calculatorGRPCConfig.Timeout,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create grpc client: %w", err)
+		return nil, fmt.Errorf("failed to create Calculator grpc client: %w", err)
 	}
 	return calculatorClient, nil
+}
+
+func initializeBalancerService() (rapplication.BalancerService, error) {
+	balancerClient, err := loadBalancerGrpcClient()
+	if err != nil {
+		return nil, err
+	}
+	return rapplication.NewRemoteIngredientsBalancerService(balancerClient), nil
+}
+
+func loadBalancerGrpcClient() (*client.IngredientsBalancerClient, error) {
+	balancerGRPCConfig := configs.LoadBalancerGRPCConfig()
+
+	balancerClient, err := client.NewIngredientsBalancerClient(
+		balancerGRPCConfig.Address,
+		balancerGRPCConfig.Timeout,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create Balancer grpc client: %w", err)
+	}
+	return balancerClient, nil
 }
 
 func loadDBConfig() *sql.DB {

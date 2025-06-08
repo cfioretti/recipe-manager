@@ -28,3 +28,19 @@ func LoadCalculatorGRPCConfig() GRPCConfig {
 		Timeout: timeout,
 	}
 }
+
+func LoadBalancerGRPCConfig() GRPCConfig {
+	balancerAddr := os.Getenv("INGREDIENTS_BALANCER_ADDR")
+	if balancerAddr == "" {
+		host := viper.GetString("grpc.host")
+		port := viper.GetString("grpc.balancer.port")
+		balancerAddr = host + ":" + port
+	}
+	timeout := 5 * time.Second
+	log.Println("balancerAddr: ", balancerAddr)
+
+	return GRPCConfig{
+		Address: balancerAddr,
+		Timeout: timeout,
+	}
+}
