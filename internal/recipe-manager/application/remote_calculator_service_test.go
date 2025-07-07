@@ -2,24 +2,28 @@ package application_test
 
 import (
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 
 	bdomain "github.com/cfioretti/recipe-manager/internal/ingredients-balancer/domain"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/application"
-	"github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/grpc/client"
 )
 
+type StubCalculatorClient struct {
+	TotalDoughWeightByPansFunc func(pans bdomain.Pans) (*bdomain.Pans, error)
+}
+
+func (s *StubCalculatorClient) TotalDoughWeightByPans(pans bdomain.Pans) (*bdomain.Pans, error) {
+	return s.TotalDoughWeightByPansFunc(pans)
+}
+
+func (s *StubCalculatorClient) Close() error {
+	return nil
+}
+
 func TestTotalDoughWeightByPans(t *testing.T) {
-	t.Skip("this test requires a running gRPC server")
-
-	grpcClient, err := client.NewDoughCalculatorClient("localhost:50051", 5*time.Second)
-	require.NoError(t, err)
-	defer grpcClient.Close()
-
-	service := application.NewRemoteDoughCalculatorService(grpcClient)
+	stubClient := createStubCalculatorClient()
+	service := application.NewRemoteDoughCalculatorService(stubClient)
 
 	diameter := 28
 	pans := bdomain.Pans{
@@ -45,4 +49,13 @@ func TestTotalDoughWeightByPans(t *testing.T) {
 	assert.Equal(t, "round 28 cm", result.Pans[0].Name)
 	assert.Equal(t, 615.75, result.Pans[0].Area)
 	assert.Equal(t, 615.75, result.TotalArea)
+}
+
+func createStubCalculatorClient() *StubCalculatorClient {
+	return &StubCalculatorClient{
+		TotalDoughWeightByPansFunc: func(pans bdomain.Pans) (*bdomain.Pans, error) {
+			// Return a copy of the input pans
+			return &pans, nil
+		},
+	}
 }

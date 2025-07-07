@@ -2,26 +2,30 @@ package application_test
 
 import (
 	"testing"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 
 	bdomain "github.com/cfioretti/recipe-manager/internal/ingredients-balancer/domain"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/application"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/domain"
-	"github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/grpc/client"
 )
 
+type StubIngredientsBalancerClient struct {
+	BalanceFunc func(recipe domain.Recipe, pans bdomain.Pans) (*domain.RecipeAggregate, error)
+}
+
+func (s *StubIngredientsBalancerClient) Balance(recipe domain.Recipe, pans bdomain.Pans) (*domain.RecipeAggregate, error) {
+	return s.BalanceFunc(recipe, pans)
+}
+
+func (s *StubIngredientsBalancerClient) Close() error {
+	return nil
+}
+
 func TestBalance(t *testing.T) {
-	t.Skip("this test requires a running gRPC server")
-
-	grpcClient, err := client.NewIngredientsBalancerClient("localhost:50052", 5*time.Second)
-	require.NoError(t, err)
-	defer grpcClient.Close()
-
-	service := application.NewRemoteIngredientsBalancerService(grpcClient)
+	stubClient := createStubIngredientsBalancerClient()
+	service := application.NewRemoteIngredientsBalancerService(stubClient)
 
 	recipeID := 1
 	recipeUUID := uuid.New()
@@ -99,4 +103,40 @@ func TestBalance(t *testing.T) {
 
 	assert.GreaterOrEqual(t, len(result.SplitIngredients.SplitDough), 1)
 	assert.GreaterOrEqual(t, len(result.SplitIngredients.SplitTopping), 1)
+}
+
+func createStubIngredientsBalancerClient() *StubIngredientsBalancerClient {
+	return &StubIngredientsBalancerClient{
+		BalanceFunc: func(recipe domain.Recipe, pans bdomain.Pans) (*domain.RecipeAggregate, error) {
+			result := &domain.RecipeAggregate{
+				Recipe: recipe,
+				SplitIngredients: domain.SplitIngredients{
+					SplitDough: []domain.Dough{
+						{
+							Name:             "Split Basic Dough",
+							PercentVariation: 0.0,
+							Ingredients: []domain.Ingredient{
+								{Name: "Flour", Amount: 500.0},
+								{Name: "Water", Amount: 350.0},
+								{Name: "Salt", Amount: 10.0},
+								{Name: "Yeast", Amount: 5.0},
+							},
+						},
+					},
+					SplitTopping: []domain.Topping{
+						{
+							Name:          "Split Basic Topping",
+							ReferenceArea: 615.75,
+							Ingredients: []domain.Ingredient{
+								{Name: "Tomato Sauce", Amount: 200.0},
+								{Name: "Mozzarella", Amount: 300.0},
+								{Name: "Basil", Amount: 10.0},
+							},
+						},
+					},
+				},
+			}
+			return result, nil
+		},
+	}
 }

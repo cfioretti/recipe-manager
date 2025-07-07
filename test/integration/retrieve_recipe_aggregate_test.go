@@ -3,17 +3,33 @@ package integration
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"testing"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 
-	bapplication "github.com/cfioretti/recipe-manager/internal/ingredients-balancer/application"
 	bdomain "github.com/cfioretti/recipe-manager/internal/ingredients-balancer/domain"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/application"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/domain"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/mysql"
 )
+
+type StubCalculatorService struct {
+	TotalDoughWeightByPansFunc func(pans bdomain.Pans) (*bdomain.Pans, error)
+}
+
+func (s *StubCalculatorService) TotalDoughWeightByPans(pans bdomain.Pans) (*bdomain.Pans, error) {
+	return s.TotalDoughWeightByPansFunc(pans)
+}
+
+type StubBalancerService struct {
+	BalanceFunc func(recipe domain.Recipe, pans bdomain.Pans) (*domain.RecipeAggregate, error)
+}
+
+func (s *StubBalancerService) Balance(recipe domain.Recipe, pans bdomain.Pans) (*domain.RecipeAggregate, error) {
+	return s.BalanceFunc(recipe, pans)
+}
 
 func TestRecipeIntegration(t *testing.T) {
 	ctx := context.Background()
@@ -25,10 +41,13 @@ func TestRecipeIntegration(t *testing.T) {
 		_ = db.Cleanup(ctx)
 	}(db, ctx)
 
+	stubCalculator := createStubCalculatorService()
+	stubBalancer := createStubBalancerService()
+
 	service := application.NewRecipeService(
 		mysql.NewMySqlRecipeRepository(db.DB),
-		bapplication.NewCalculatorService(),
-		bapplication.NewIngredientsBalancerService(),
+		stubCalculator,
+		stubBalancer,
 	)
 
 	t.Run("Happy Path - retrieve RecipeAggregate successfully", func(t *testing.T) {
@@ -218,4 +237,90 @@ func TestRecipeIntegration(t *testing.T) {
 		assert.Nil(t, result)
 		assert.Error(t, err)
 	})
+}
+
+func createStubCalculatorService() *StubCalculatorService {
+	return &StubCalculatorService{
+		TotalDoughWeightByPansFunc: func(pans bdomain.Pans) (*bdomain.Pans, error) {
+			for _, pan := range pans.Pans {
+				if pan.Shape == "triangle" {
+					return nil, fmt.Errorf("unsupported shape: %s", pan.Shape)
+				}
+			}
+
+			totalArea := 0.0
+			for _, pan := range pans.Pans {
+				totalArea += pan.Area
+			}
+			pans.TotalArea = totalArea
+			return &pans, nil
+		},
+	}
+}
+
+func createStubBalancerService() *StubBalancerService {
+	return &StubBalancerService{
+		BalanceFunc: func(recipe domain.Recipe, pans bdomain.Pans) (*domain.RecipeAggregate, error) {
+			splitDough1 := domain.Dough{
+				Name:             "round 50 cm",
+				PercentVariation: 0,
+				Ingredients: []domain.Ingredient{
+					{Name: "flour", Amount: 530.1},
+					{Name: "water", Amount: 265.1},
+					{Name: "salt", Amount: 44.2},
+					{Name: "evoOil", Amount: 26.5},
+					{Name: "yeast", Amount: 17.7},
+				}}
+			splitDough2 := domain.Dough{
+				Name:             "square 20 cm",
+				PercentVariation: 0,
+				Ingredients: []domain.Ingredient{
+					{Name: "flour", Amount: 108},
+					{Name: "water", Amount: 54},
+					{Name: "salt", Amount: 9},
+					{Name: "evoOil", Amount: 5.4},
+					{Name: "yeast", Amount: 3.6},
+				}}
+			splitDough3 := domain.Dough{
+				Name:             "rectangular 30 x 40 cm",
+				PercentVariation: 0,
+				Ingredients: []domain.Ingredient{
+					{Name: "flour", Amount: 324},
+					{Name: "water", Amount: 162},
+					{Name: "salt", Amount: 27},
+					{Name: "evoOil", Amount: 16.2},
+					{Name: "yeast", Amount: 10.8},
+				}}
+
+			updatedRecipe := recipe
+			updatedRecipe.Dough = domain.Dough{
+				PercentVariation: -10,
+				Ingredients: []domain.Ingredient{
+					{Name: "flour", Amount: 962.1},
+					{Name: "water", Amount: 481.1},
+					{Name: "salt", Amount: 80.2},
+					{Name: "evoOil", Amount: 48.1},
+					{Name: "yeast", Amount: 32.1},
+				},
+			}
+			updatedRecipe.Topping = domain.Topping{
+				ReferenceArea: 1200,
+				Ingredients: []domain.Ingredient{
+					{Name: "peeledTomatoes", Amount: 890.9},
+					{Name: "mozzarellaCheese", Amount: 742.4},
+					{Name: "parmesanCheese", Amount: 59.4},
+					{Name: "basil", Amount: 44.5},
+					{Name: "evoOil", Amount: 44.5},
+				},
+			}
+
+			return &domain.RecipeAggregate{
+				Recipe: updatedRecipe,
+				SplitIngredients: domain.SplitIngredients{
+					SplitDough:   []domain.Dough{splitDough1, splitDough2, splitDough3},
+					SplitTopping: []domain.Topping{updatedRecipe.Topping},
+				},
+			}, nil
+		},
+	}
 }
