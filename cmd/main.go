@@ -11,8 +11,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/cfioretti/recipe-manager/configs"
-	capplication "github.com/cfioretti/recipe-manager/internal/ingredients-balancer/application"
-	rapplication "github.com/cfioretti/recipe-manager/internal/recipe-manager/application"
+	"github.com/cfioretti/recipe-manager/internal/recipe-manager/application"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/grpc/client"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/mysql"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/interfaces/api/http"
@@ -21,27 +20,19 @@ import (
 func main() {
 	setEnvConfigs()
 	db := loadDBConfig()
-	calculatorService, err := initializeCalculatorService()
-	if err != nil {
-		calculatorService = capplication.NewCalculatorService()
-	}
-	balancerService, err := initializeBalancerService()
-	if err != nil {
-		balancerService = capplication.NewIngredientsBalancerService()
-	}
-	router := makeRouter(db, calculatorService, balancerService)
-	port := viper.GetInt("server.port")
-	if err := router.Run(fmt.Sprintf(":%d", port)); err != nil {
-		panic(fmt.Errorf("failed to start server: %v", err))
-	}
+
+	router := setupRouter(db)
+	startServer(router)
 }
 
-func makeRouter(dB *sql.DB, calculatorService rapplication.CalculatorService, balanceService rapplication.BalancerService) *gin.Engine {
+func setupRouter(db *sql.DB) *gin.Engine {
+	calculatorService := initializeCalculatorService()
+	balancerService := initializeBalancerService()
 	recipeHandler := http.NewRecipeHandler(
-		rapplication.NewRecipeService(
-			mysql.NewMySqlRecipeRepository(dB),
+		application.NewRecipeService(
+			mysql.NewMySqlRecipeRepository(db),
 			calculatorService,
-			balanceService,
+			balancerService,
 		),
 	)
 
@@ -49,6 +40,13 @@ func makeRouter(dB *sql.DB, calculatorService rapplication.CalculatorService, ba
 	router.Use(corsMiddleware())
 	router.POST("/recipes/:uuid/aggregate", recipeHandler.RetrieveRecipeAggregate)
 	return router
+}
+
+func startServer(router *gin.Engine) {
+	port := viper.GetInt("server.port")
+	if err := router.Run(fmt.Sprintf(":%d", port)); err != nil {
+		panic(fmt.Errorf("failed to start server: %v", err))
+	}
 }
 
 func corsMiddleware() gin.HandlerFunc {
@@ -65,44 +63,36 @@ func corsMiddleware() gin.HandlerFunc {
 	}
 }
 
-func initializeCalculatorService() (rapplication.CalculatorService, error) {
+func initializeCalculatorService() application.CalculatorService {
 	calculatorClient, err := loadCalculatorGrpcClient()
 	if err != nil {
-		return nil, err
+		panic(fmt.Errorf("failed to initialize calculator service: %v", err))
 	}
-	return rapplication.NewRemoteDoughCalculatorService(calculatorClient), nil
+	return application.NewRemoteDoughCalculatorService(calculatorClient)
 }
 
 func loadCalculatorGrpcClient() (*client.CalculatorClient, error) {
-	calculatorGRPCConfig := configs.LoadCalculatorGRPCConfig()
-
-	calculatorClient, err := client.NewDoughCalculatorClient(
-		calculatorGRPCConfig.Address,
-		calculatorGRPCConfig.Timeout,
-	)
+	config := configs.LoadCalculatorGRPCConfig()
+	calculatorClient, err := client.NewDoughCalculatorClient(config.Address, config.Timeout)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create Calculator grpc client: %w", err)
+		return nil, fmt.Errorf("failed to create Calculator gRPC calculatorClient: %w", err)
 	}
 	return calculatorClient, nil
 }
 
-func initializeBalancerService() (rapplication.BalancerService, error) {
+func initializeBalancerService() application.BalancerService {
 	balancerClient, err := loadBalancerGrpcClient()
 	if err != nil {
-		return nil, err
+		panic(fmt.Errorf("failed to initialize balancer service: %v", err))
 	}
-	return rapplication.NewRemoteIngredientsBalancerService(balancerClient), nil
+	return application.NewRemoteIngredientsBalancerService(balancerClient)
 }
 
 func loadBalancerGrpcClient() (*client.IngredientsBalancerClient, error) {
-	balancerGRPCConfig := configs.LoadBalancerGRPCConfig()
-
-	balancerClient, err := client.NewIngredientsBalancerClient(
-		balancerGRPCConfig.Address,
-		balancerGRPCConfig.Timeout,
-	)
+	config := configs.LoadBalancerGRPCConfig()
+	balancerClient, err := client.NewIngredientsBalancerClient(config.Address, config.Timeout)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create Balancer grpc client: %w", err)
+		return nil, fmt.Errorf("failed to create Balancer gRPC balancerClient: %w", err)
 	}
 	return balancerClient, nil
 }
@@ -135,7 +125,6 @@ func setEnvConfigs() {
 		configName = "props"
 	}
 	viper.SetConfigName(configName)
-
 	viper.SetConfigType("yml")
 	viper.AddConfigPath("configs/")
 	if err := viper.ReadInConfig(); err != nil {

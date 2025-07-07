@@ -1,7 +1,7 @@
 services:
   recipe-manager:
     build:
-      context: ../recipe-manager
+      context: ..
       dockerfile: deployments/Dockerfile
     ports:
       - "8080:8080"
