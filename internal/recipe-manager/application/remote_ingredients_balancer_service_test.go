@@ -6,16 +6,15 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 
-	bdomain "github.com/cfioretti/recipe-manager/internal/ingredients-balancer/domain"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/application"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/domain"
 )
 
 type StubIngredientsBalancerClient struct {
-	BalanceFunc func(recipe domain.Recipe, pans bdomain.Pans) (*domain.RecipeAggregate, error)
+	BalanceFunc func(recipe domain.Recipe, pans domain.Pans) (*domain.RecipeAggregate, error)
 }
 
-func (s *StubIngredientsBalancerClient) Balance(recipe domain.Recipe, pans bdomain.Pans) (*domain.RecipeAggregate, error) {
+func (s *StubIngredientsBalancerClient) Balance(recipe domain.Recipe, pans domain.Pans) (*domain.RecipeAggregate, error) {
 	return s.BalanceFunc(recipe, pans)
 }
 
@@ -77,11 +76,11 @@ func TestBalance(t *testing.T) {
 	}
 
 	diameter := 28
-	pans := bdomain.Pans{
-		Pans: []bdomain.Pan{
+	pans := domain.Pans{
+		Pans: []domain.Pan{
 			{
 				Shape: "round",
-				Measures: bdomain.Measures{
+				Measures: domain.Measures{
 					Diameter: &diameter,
 				},
 				Name: "round 28 cm",
@@ -107,7 +106,7 @@ func TestBalance(t *testing.T) {
 
 func createStubIngredientsBalancerClient() *StubIngredientsBalancerClient {
 	return &StubIngredientsBalancerClient{
-		BalanceFunc: func(recipe domain.Recipe, pans bdomain.Pans) (*domain.RecipeAggregate, error) {
+		BalanceFunc: func(recipe domain.Recipe, pans domain.Pans) (*domain.RecipeAggregate, error) {
 			result := &domain.RecipeAggregate{
 				Recipe: recipe,
 				SplitIngredients: domain.SplitIngredients{

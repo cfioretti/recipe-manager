@@ -9,25 +9,24 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 
-	bdomain "github.com/cfioretti/recipe-manager/internal/ingredients-balancer/domain"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/application"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/domain"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/mysql"
 )
 
 type StubCalculatorService struct {
-	TotalDoughWeightByPansFunc func(pans bdomain.Pans) (*bdomain.Pans, error)
+	TotalDoughWeightByPansFunc func(pans domain.Pans) (*domain.Pans, error)
 }
 
-func (s *StubCalculatorService) TotalDoughWeightByPans(pans bdomain.Pans) (*bdomain.Pans, error) {
+func (s *StubCalculatorService) TotalDoughWeightByPans(pans domain.Pans) (*domain.Pans, error) {
 	return s.TotalDoughWeightByPansFunc(pans)
 }
 
 type StubBalancerService struct {
-	BalanceFunc func(recipe domain.Recipe, pans bdomain.Pans) (*domain.RecipeAggregate, error)
+	BalanceFunc func(recipe domain.Recipe, pans domain.Pans) (*domain.RecipeAggregate, error)
 }
 
-func (s *StubBalancerService) Balance(recipe domain.Recipe, pans bdomain.Pans) (*domain.RecipeAggregate, error) {
+func (s *StubBalancerService) Balance(recipe domain.Recipe, pans domain.Pans) (*domain.RecipeAggregate, error) {
 	return s.BalanceFunc(recipe, pans)
 }
 
@@ -89,23 +88,23 @@ func TestRecipeIntegration(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		pans := bdomain.Pans{
-			Pans: []bdomain.Pan{
+		pans := domain.Pans{
+			Pans: []domain.Pan{
 				{
 					Shape: "round",
-					Measures: bdomain.Measures{
+					Measures: domain.Measures{
 						Diameter: intPtr(50),
 					},
 				},
 				{
 					Shape: "square",
-					Measures: bdomain.Measures{
+					Measures: domain.Measures{
 						Edge: intPtr(20),
 					},
 				},
 				{
 					Shape: "rectangular",
-					Measures: bdomain.Measures{
+					Measures: domain.Measures{
 						Width:  intPtr(30),
 						Length: intPtr(40),
 					},
@@ -178,11 +177,11 @@ func TestRecipeIntegration(t *testing.T) {
 	t.Run("Error - Recipe not found in repository", func(t *testing.T) {
 		nonExistentUuid := uuid.New()
 
-		pans := bdomain.Pans{
-			Pans: []bdomain.Pan{
+		pans := domain.Pans{
+			Pans: []domain.Pan{
 				{
 					Shape: "round",
-					Measures: bdomain.Measures{
+					Measures: domain.Measures{
 						Diameter: intPtr(50),
 					},
 				},
@@ -221,11 +220,11 @@ func TestRecipeIntegration(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		pans := bdomain.Pans{
-			Pans: []bdomain.Pan{
+		pans := domain.Pans{
+			Pans: []domain.Pan{
 				{
 					Shape: "triangle",
-					Measures: bdomain.Measures{
+					Measures: domain.Measures{
 						Diameter: nil,
 					},
 				},
@@ -241,7 +240,7 @@ func TestRecipeIntegration(t *testing.T) {
 
 func createStubCalculatorService() *StubCalculatorService {
 	return &StubCalculatorService{
-		TotalDoughWeightByPansFunc: func(pans bdomain.Pans) (*bdomain.Pans, error) {
+		TotalDoughWeightByPansFunc: func(pans domain.Pans) (*domain.Pans, error) {
 			for _, pan := range pans.Pans {
 				if pan.Shape == "triangle" {
 					return nil, fmt.Errorf("unsupported shape: %s", pan.Shape)
@@ -260,7 +259,7 @@ func createStubCalculatorService() *StubCalculatorService {
 
 func createStubBalancerService() *StubBalancerService {
 	return &StubBalancerService{
-		BalanceFunc: func(recipe domain.Recipe, pans bdomain.Pans) (*domain.RecipeAggregate, error) {
+		BalanceFunc: func(recipe domain.Recipe, pans domain.Pans) (*domain.RecipeAggregate, error) {
 			splitDough1 := domain.Dough{
 				Name:             "round 50 cm",
 				PercentVariation: 0,

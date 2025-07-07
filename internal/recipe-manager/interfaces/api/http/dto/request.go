@@ -1,9 +1,8 @@
 package dto
 
 import (
+	"github.com/cfioretti/recipe-manager/internal/recipe-manager/domain"
 	"strconv"
-
-	"github.com/cfioretti/recipe-manager/internal/ingredients-balancer/domain"
 )
 
 type PanRequest struct {

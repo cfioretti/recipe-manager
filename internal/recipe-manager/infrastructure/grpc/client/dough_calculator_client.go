@@ -7,7 +7,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	bdomain "github.com/cfioretti/recipe-manager/internal/ingredients-balancer/domain"
+	"github.com/cfioretti/recipe-manager/internal/recipe-manager/domain"
 	pb "github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/grpc/proto/generated"
 )
 
@@ -38,7 +38,7 @@ func (c *CalculatorClient) Close() error {
 	return c.conn.Close()
 }
 
-func (c *CalculatorClient) TotalDoughWeightByPans(pans bdomain.Pans) (*bdomain.Pans, error) {
+func (c *CalculatorClient) TotalDoughWeightByPans(pans domain.Pans) (*domain.Pans, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), c.timeout)
 	defer cancel()
 
@@ -54,7 +54,7 @@ func (c *CalculatorClient) TotalDoughWeightByPans(pans bdomain.Pans) (*bdomain.P
 	return &result, nil
 }
 
-func toProtoMessage(domainPans *bdomain.Pans) *pb.PansProto {
+func toProtoMessage(domainPans *domain.Pans) *pb.PansProto {
 	panProtos := make([]*pb.PanProto, 0, len(domainPans.Pans))
 
 	for _, p := range domainPans.Pans {
@@ -78,13 +78,13 @@ func toProtoMessage(domainPans *bdomain.Pans) *pb.PansProto {
 	}
 }
 
-func toDomainPans(protoMessage *pb.PansProto) bdomain.Pans {
-	pans := make([]bdomain.Pan, 0, len(protoMessage.Pans))
+func toDomainPans(protoMessage *pb.PansProto) domain.Pans {
+	pans := make([]domain.Pan, 0, len(protoMessage.Pans))
 
 	for _, p := range protoMessage.Pans {
-		pan := bdomain.Pan{
+		pan := domain.Pan{
 			Shape: p.Shape,
-			Measures: bdomain.Measures{
+			Measures: domain.Measures{
 				Diameter: toPointer(p.Measures.Diameter),
 				Edge:     toPointer(p.Measures.Edge),
 				Width:    toPointer(p.Measures.Width),
@@ -96,7 +96,7 @@ func toDomainPans(protoMessage *pb.PansProto) bdomain.Pans {
 		pans = append(pans, pan)
 	}
 
-	return bdomain.Pans{
+	return domain.Pans{
 		Pans:      pans,
 		TotalArea: protoMessage.TotalArea,
 	}

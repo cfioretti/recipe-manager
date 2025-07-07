@@ -5,15 +5,15 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	bdomain "github.com/cfioretti/recipe-manager/internal/ingredients-balancer/domain"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/application"
+	"github.com/cfioretti/recipe-manager/internal/recipe-manager/domain"
 )
 
 type StubCalculatorClient struct {
-	TotalDoughWeightByPansFunc func(pans bdomain.Pans) (*bdomain.Pans, error)
+	TotalDoughWeightByPansFunc func(pans domain.Pans) (*domain.Pans, error)
 }
 
-func (s *StubCalculatorClient) TotalDoughWeightByPans(pans bdomain.Pans) (*bdomain.Pans, error) {
+func (s *StubCalculatorClient) TotalDoughWeightByPans(pans domain.Pans) (*domain.Pans, error) {
 	return s.TotalDoughWeightByPansFunc(pans)
 }
 
@@ -26,11 +26,11 @@ func TestTotalDoughWeightByPans(t *testing.T) {
 	service := application.NewRemoteDoughCalculatorService(stubClient)
 
 	diameter := 28
-	pans := bdomain.Pans{
-		Pans: []bdomain.Pan{
+	pans := domain.Pans{
+		Pans: []domain.Pan{
 			{
 				Shape: "round",
-				Measures: bdomain.Measures{
+				Measures: domain.Measures{
 					Diameter: &diameter,
 				},
 				Name: "round 28 cm",
@@ -53,8 +53,7 @@ func TestTotalDoughWeightByPans(t *testing.T) {
 
 func createStubCalculatorClient() *StubCalculatorClient {
 	return &StubCalculatorClient{
-		TotalDoughWeightByPansFunc: func(pans bdomain.Pans) (*bdomain.Pans, error) {
-			// Return a copy of the input pans
+		TotalDoughWeightByPansFunc: func(pans domain.Pans) (*domain.Pans, error) {
 			return &pans, nil
 		},
 	}

@@ -2,13 +2,12 @@ package client
 
 import (
 	"context"
-	"github.com/google/uuid"
 	"time"
 
+	"github.com/google/uuid"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	bdomain "github.com/cfioretti/recipe-manager/internal/ingredients-balancer/domain"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/domain"
 	pb "github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/grpc/proto/generated"
 )
@@ -40,7 +39,7 @@ func (c *IngredientsBalancerClient) Close() error {
 	return c.conn.Close()
 }
 
-func (c *IngredientsBalancerClient) Balance(recipe domain.Recipe, pans bdomain.Pans) (*domain.RecipeAggregate, error) {
+func (c *IngredientsBalancerClient) Balance(recipe domain.Recipe, pans domain.Pans) (*domain.RecipeAggregate, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), c.timeout)
 	defer cancel()
 
@@ -120,7 +119,7 @@ func toProtoSteps(steps domain.Steps) *pb.Steps {
 	}
 }
 
-func toProtoPans(pans bdomain.Pans) *pb.Pans {
+func toProtoPans(pans domain.Pans) *pb.Pans {
 	protoPans := make([]*pb.Pan, 0, len(pans.Pans))
 	for _, pan := range pans.Pans {
 		protoPans = append(protoPans, &pb.Pan{
