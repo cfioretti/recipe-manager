@@ -1,6 +1,7 @@
 package application_test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/google/uuid"
@@ -11,11 +12,11 @@ import (
 )
 
 type StubIngredientsBalancerClient struct {
-	BalanceFunc func(recipe domain.Recipe, pans domain.Pans) (*domain.RecipeAggregate, error)
+	BalanceFunc func(ctx context.Context, recipe domain.Recipe, pans domain.Pans) (*domain.RecipeAggregate, error)
 }
 
-func (s *StubIngredientsBalancerClient) Balance(recipe domain.Recipe, pans domain.Pans) (*domain.RecipeAggregate, error) {
-	return s.BalanceFunc(recipe, pans)
+func (s *StubIngredientsBalancerClient) Balance(ctx context.Context, recipe domain.Recipe, pans domain.Pans) (*domain.RecipeAggregate, error) {
+	return s.BalanceFunc(ctx, recipe, pans)
 }
 
 func (s *StubIngredientsBalancerClient) Close() error {
@@ -90,7 +91,7 @@ func TestBalance(t *testing.T) {
 		TotalArea: 615.75,
 	}
 
-	result, err := service.Balance(recipe, pans)
+	result, err := service.Balance(context.Background(), recipe, pans)
 
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
@@ -106,7 +107,7 @@ func TestBalance(t *testing.T) {
 
 func createStubIngredientsBalancerClient() *StubIngredientsBalancerClient {
 	return &StubIngredientsBalancerClient{
-		BalanceFunc: func(recipe domain.Recipe, pans domain.Pans) (*domain.RecipeAggregate, error) {
+		BalanceFunc: func(ctx context.Context, recipe domain.Recipe, pans domain.Pans) (*domain.RecipeAggregate, error) {
 			result := &domain.RecipeAggregate{
 				Recipe: recipe,
 				SplitIngredients: domain.SplitIngredients{

@@ -1,6 +1,7 @@
 package application_test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -10,11 +11,11 @@ import (
 )
 
 type StubCalculatorClient struct {
-	TotalDoughWeightByPansFunc func(pans domain.Pans) (*domain.Pans, error)
+	TotalDoughWeightByPansFunc func(ctx context.Context, pans domain.Pans) (*domain.Pans, error)
 }
 
-func (s *StubCalculatorClient) TotalDoughWeightByPans(pans domain.Pans) (*domain.Pans, error) {
-	return s.TotalDoughWeightByPansFunc(pans)
+func (s *StubCalculatorClient) TotalDoughWeightByPans(ctx context.Context, pans domain.Pans) (*domain.Pans, error) {
+	return s.TotalDoughWeightByPansFunc(ctx, pans)
 }
 
 func (s *StubCalculatorClient) Close() error {
@@ -40,7 +41,7 @@ func TestTotalDoughWeightByPans(t *testing.T) {
 		TotalArea: 615.75,
 	}
 
-	result, err := service.TotalDoughWeightByPans(pans)
+	result, err := service.TotalDoughWeightByPans(context.Background(), pans)
 
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
@@ -53,7 +54,7 @@ func TestTotalDoughWeightByPans(t *testing.T) {
 
 func createStubCalculatorClient() *StubCalculatorClient {
 	return &StubCalculatorClient{
-		TotalDoughWeightByPansFunc: func(pans domain.Pans) (*domain.Pans, error) {
+		TotalDoughWeightByPansFunc: func(ctx context.Context, pans domain.Pans) (*domain.Pans, error) {
 			return &pans, nil
 		},
 	}

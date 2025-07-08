@@ -15,19 +15,19 @@ import (
 )
 
 type StubCalculatorService struct {
-	TotalDoughWeightByPansFunc func(pans domain.Pans) (*domain.Pans, error)
+	TotalDoughWeightByPansFunc func(ctx context.Context, pans domain.Pans) (*domain.Pans, error)
 }
 
-func (s *StubCalculatorService) TotalDoughWeightByPans(pans domain.Pans) (*domain.Pans, error) {
-	return s.TotalDoughWeightByPansFunc(pans)
+func (s *StubCalculatorService) TotalDoughWeightByPans(ctx context.Context, pans domain.Pans) (*domain.Pans, error) {
+	return s.TotalDoughWeightByPansFunc(ctx, pans)
 }
 
 type StubBalancerService struct {
-	BalanceFunc func(recipe domain.Recipe, pans domain.Pans) (*domain.RecipeAggregate, error)
+	BalanceFunc func(ctx context.Context, recipe domain.Recipe, pans domain.Pans) (*domain.RecipeAggregate, error)
 }
 
-func (s *StubBalancerService) Balance(recipe domain.Recipe, pans domain.Pans) (*domain.RecipeAggregate, error) {
-	return s.BalanceFunc(recipe, pans)
+func (s *StubBalancerService) Balance(ctx context.Context, recipe domain.Recipe, pans domain.Pans) (*domain.RecipeAggregate, error) {
+	return s.BalanceFunc(ctx, recipe, pans)
 }
 
 func TestRecipeIntegration(t *testing.T) {
@@ -165,7 +165,7 @@ func TestRecipeIntegration(t *testing.T) {
 			},
 		}
 
-		result, err := service.Handle(testRecipe.Uuid, pans)
+		result, err := service.Handle(ctx, testRecipe.Uuid, pans)
 
 		assert.NoError(t, err)
 		assert.Equal(t, testRecipe.Uuid, result.Uuid)
@@ -188,7 +188,7 @@ func TestRecipeIntegration(t *testing.T) {
 			},
 		}
 
-		result, err := service.Handle(nonExistentUuid, pans)
+		result, err := service.Handle(ctx, nonExistentUuid, pans)
 
 		assert.Nil(t, result)
 		assert.Error(t, err)
@@ -231,7 +231,7 @@ func TestRecipeIntegration(t *testing.T) {
 			},
 		}
 
-		result, err := service.Handle(testRecipe.Uuid, pans)
+		result, err := service.Handle(ctx, testRecipe.Uuid, pans)
 
 		assert.Nil(t, result)
 		assert.Error(t, err)
@@ -240,7 +240,7 @@ func TestRecipeIntegration(t *testing.T) {
 
 func createStubCalculatorService() *StubCalculatorService {
 	return &StubCalculatorService{
-		TotalDoughWeightByPansFunc: func(pans domain.Pans) (*domain.Pans, error) {
+		TotalDoughWeightByPansFunc: func(ctx context.Context, pans domain.Pans) (*domain.Pans, error) {
 			for _, pan := range pans.Pans {
 				if pan.Shape == "triangle" {
 					return nil, fmt.Errorf("unsupported shape: %s", pan.Shape)
@@ -259,7 +259,7 @@ func createStubCalculatorService() *StubCalculatorService {
 
 func createStubBalancerService() *StubBalancerService {
 	return &StubBalancerService{
-		BalanceFunc: func(recipe domain.Recipe, pans domain.Pans) (*domain.RecipeAggregate, error) {
+		BalanceFunc: func(ctx context.Context, recipe domain.Recipe, pans domain.Pans) (*domain.RecipeAggregate, error) {
 			splitDough1 := domain.Dough{
 				Name:             "round 50 cm",
 				PercentVariation: 0,

@@ -1,6 +1,7 @@
 package application
 
 import (
+	"context"
 	"errors"
 	"testing"
 
@@ -24,8 +25,8 @@ type MockCalculatorService struct {
 	mock.Mock
 }
 
-func (m *MockCalculatorService) TotalDoughWeightByPans(params domain.Pans) (*domain.Pans, error) {
-	args := m.Called(params)
+func (m *MockCalculatorService) TotalDoughWeightByPans(ctx context.Context, params domain.Pans) (*domain.Pans, error) {
+	args := m.Called(ctx, params)
 	return args.Get(0).(*domain.Pans), args.Error(1)
 }
 
@@ -33,13 +34,14 @@ type MockBalancerService struct {
 	mock.Mock
 }
 
-func (m *MockBalancerService) Balance(recipe domain.Recipe, pans domain.Pans) (*domain.RecipeAggregate, error) {
-	args := m.Called(recipe, pans)
+func (m *MockBalancerService) Balance(ctx context.Context, recipe domain.Recipe, pans domain.Pans) (*domain.RecipeAggregate, error) {
+	args := m.Called(ctx, recipe, pans)
 	return args.Get(0).(*domain.RecipeAggregate), args.Error(1)
 }
 
 func TestHandle(t *testing.T) {
 	recipeUuid := uuid.New()
+	ctx := context.Background()
 
 	t.Run("success", func(t *testing.T) {
 		mockRecipeRepository := new(MockRecipeRepository)
@@ -47,13 +49,13 @@ func TestHandle(t *testing.T) {
 		mockRecipeRepository.On("GetRecipeByUuid", recipeUuid).Return(&recipe, nil)
 		pans := domain.Pans{}
 		mockCalculatorService := new(MockCalculatorService)
-		mockCalculatorService.On("TotalDoughWeightByPans", mock.Anything).Return(&pans, nil)
+		mockCalculatorService.On("TotalDoughWeightByPans", mock.Anything, mock.Anything).Return(&pans, nil)
 		recipeAggregate := domain.RecipeAggregate{Recipe: recipe}
 		mockBalancerService := new(MockBalancerService)
-		mockBalancerService.On("Balance", recipe, pans).Return(&recipeAggregate, nil)
+		mockBalancerService.On("Balance", mock.Anything, recipe, pans).Return(&recipeAggregate, nil)
 
 		service := NewRecipeService(mockRecipeRepository, mockCalculatorService, mockBalancerService)
-		result, _ := service.Handle(recipeUuid, pans)
+		result, _ := service.Handle(ctx, recipeUuid, pans)
 
 		assert.Equal(t, recipeAggregate, *result)
 	})
@@ -61,10 +63,10 @@ func TestHandle(t *testing.T) {
 	t.Run("calculator service error", func(t *testing.T) {
 		mockCalculatorService := new(MockCalculatorService)
 		calculatorError := errors.New("calculator error")
-		mockCalculatorService.On("TotalDoughWeightByPans", mock.Anything).Return((*domain.Pans)(nil), calculatorError)
+		mockCalculatorService.On("TotalDoughWeightByPans", mock.Anything, mock.Anything).Return((*domain.Pans)(nil), calculatorError)
 
 		service := NewRecipeService(new(MockRecipeRepository), mockCalculatorService, new(MockBalancerService))
-		result, err := service.Handle(recipeUuid, domain.Pans{})
+		result, err := service.Handle(ctx, recipeUuid, domain.Pans{})
 
 		assert.Nil(t, result)
 		assert.Equal(t, calculatorError, err)
@@ -77,10 +79,10 @@ func TestHandle(t *testing.T) {
 
 		mockCalculatorService := new(MockCalculatorService)
 		pans := domain.Pans{}
-		mockCalculatorService.On("TotalDoughWeightByPans", mock.Anything).Return(&pans, nil)
+		mockCalculatorService.On("TotalDoughWeightByPans", mock.Anything, mock.Anything).Return(&pans, nil)
 
 		service := NewRecipeService(mockRecipeRepository, mockCalculatorService, new(MockBalancerService))
-		result, err := service.Handle(recipeUuid, pans)
+		result, err := service.Handle(ctx, recipeUuid, pans)
 
 		assert.Nil(t, result)
 		assert.Equal(t, repositoryError, err)
@@ -93,14 +95,14 @@ func TestHandle(t *testing.T) {
 
 		mockCalculatorService := new(MockCalculatorService)
 		pans := domain.Pans{}
-		mockCalculatorService.On("TotalDoughWeightByPans", mock.Anything).Return(&pans, nil)
+		mockCalculatorService.On("TotalDoughWeightByPans", mock.Anything, mock.Anything).Return(&pans, nil)
 
 		mockBalancerService := new(MockBalancerService)
 		balancerError := errors.New("balancer error")
-		mockBalancerService.On("Balance", mock.Anything, mock.Anything).Return((*domain.RecipeAggregate)(nil), balancerError)
+		mockBalancerService.On("Balance", mock.Anything, mock.Anything, mock.Anything).Return((*domain.RecipeAggregate)(nil), balancerError)
 
 		service := NewRecipeService(mockRecipeRepository, mockCalculatorService, mockBalancerService)
-		result, err := service.Handle(recipeUuid, pans)
+		result, err := service.Handle(ctx, recipeUuid, pans)
 
 		assert.Nil(t, result)
 		assert.Equal(t, balancerError, err)

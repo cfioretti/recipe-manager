@@ -2,6 +2,7 @@ package http
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"net/http"
 	"net/http/httptest"
@@ -19,8 +20,8 @@ type MockRecipeService struct {
 	mock.Mock
 }
 
-func (m *MockRecipeService) Handle(recipeUuid uuid.UUID, requestBody domain.Pans) (*domain.RecipeAggregate, error) {
-	args := m.Called(recipeUuid, requestBody)
+func (m *MockRecipeService) Handle(ctx context.Context, recipeUuid uuid.UUID, requestBody domain.Pans) (*domain.RecipeAggregate, error) {
+	args := m.Called(ctx, recipeUuid, requestBody)
 	return args.Get(0).(*domain.RecipeAggregate), args.Error(1)
 }
 
@@ -40,7 +41,7 @@ func TestRetrieveRecipeAggregate(t *testing.T) {
 
 		recipeAggregate := domain.RecipeAggregate{Recipe: domain.Recipe{Uuid: recipeUuid}}
 		mockRecipeService := new(MockRecipeService)
-		mockRecipeService.On("Handle", recipeUuid, mock.Anything).Return(&recipeAggregate, nil)
+		mockRecipeService.On("Handle", mock.Anything, recipeUuid, mock.Anything).Return(&recipeAggregate, nil)
 
 		handler := NewRecipeHandler(mockRecipeService)
 		handler.RetrieveRecipeAggregate(ctx)
@@ -76,7 +77,7 @@ func TestRetrieveRecipeAggregate(t *testing.T) {
 
 		recipeAggregate := domain.RecipeAggregate{Recipe: domain.Recipe{Uuid: recipeUuid}}
 		mockRecipeService := new(MockRecipeService)
-		mockRecipeService.On("Handle", recipeUuid, mock.Anything).Return(&recipeAggregate, errors.New("ERROR"))
+		mockRecipeService.On("Handle", mock.Anything, recipeUuid, mock.Anything).Return(&recipeAggregate, errors.New("ERROR"))
 
 		handler := NewRecipeHandler(mockRecipeService)
 		handler.RetrieveRecipeAggregate(ctx)
