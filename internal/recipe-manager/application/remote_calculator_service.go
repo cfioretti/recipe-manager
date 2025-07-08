@@ -1,11 +1,13 @@
 package application
 
 import (
+	"context"
+
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/domain"
 )
 
 type CalculatorClient interface {
-	TotalDoughWeightByPans(pans domain.Pans) (*domain.Pans, error)
+	TotalDoughWeightByPans(context.Context, domain.Pans) (*domain.Pans, error)
 	Close() error
 }
 
@@ -19,6 +21,6 @@ func NewRemoteDoughCalculatorService(client CalculatorClient) *RemoteCalculatorS
 	}
 }
 
-func (dc *RemoteCalculatorService) TotalDoughWeightByPans(pans domain.Pans) (*domain.Pans, error) {
-	return dc.client.TotalDoughWeightByPans(pans)
+func (dc *RemoteCalculatorService) TotalDoughWeightByPans(ctx context.Context, pans domain.Pans) (*domain.Pans, error) {
+	return dc.client.TotalDoughWeightByPans(ctx, pans)
 }

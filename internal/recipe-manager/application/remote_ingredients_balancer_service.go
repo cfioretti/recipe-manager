@@ -1,11 +1,13 @@
 package application
 
 import (
+	"context"
+
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/domain"
 )
 
 type IngredientsBalancerClient interface {
-	Balance(recipe domain.Recipe, pans domain.Pans) (*domain.RecipeAggregate, error)
+	Balance(context.Context, domain.Recipe, domain.Pans) (*domain.RecipeAggregate, error)
 	Close() error
 }
 
@@ -19,6 +21,6 @@ func NewRemoteIngredientsBalancerService(client IngredientsBalancerClient) *Remo
 	}
 }
 
-func (bs *RemoteIngredientsBalancerService) Balance(recipe domain.Recipe, pans domain.Pans) (*domain.RecipeAggregate, error) {
-	return bs.client.Balance(recipe, pans)
+func (bs *RemoteIngredientsBalancerService) Balance(ctx context.Context, recipe domain.Recipe, pans domain.Pans) (*domain.RecipeAggregate, error) {
+	return bs.client.Balance(ctx, recipe, pans)
 }

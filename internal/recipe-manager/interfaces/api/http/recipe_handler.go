@@ -1,6 +1,7 @@
 package http
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -11,7 +12,7 @@ import (
 )
 
 type RecipeService interface {
-	Handle(uuid.UUID, domain.Pans) (*domain.RecipeAggregate, error)
+	Handle(context.Context, uuid.UUID, domain.Pans) (*domain.RecipeAggregate, error)
 }
 
 type RecipeHandler struct {
@@ -35,7 +36,7 @@ func (rc *RecipeHandler) RetrieveRecipeAggregate(ctx *gin.Context) {
 		return
 	}
 
-	recipe, err := rc.recipeService.Handle(recipeUuid, requestBody.ToDomain())
+	recipe, err := rc.recipeService.Handle(ctx.Request.Context(), recipeUuid, requestBody.ToDomain())
 	if err != nil {
 		errorResponse(ctx, http.StatusBadRequest, err.Error())
 		return

@@ -1,6 +1,8 @@
 package application
 
 import (
+	"context"
+
 	"github.com/google/uuid"
 
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/domain"
@@ -11,11 +13,11 @@ type RecipeRepository interface {
 }
 
 type CalculatorService interface {
-	TotalDoughWeightByPans(domain.Pans) (*domain.Pans, error)
+	TotalDoughWeightByPans(context.Context, domain.Pans) (*domain.Pans, error)
 }
 
 type BalancerService interface {
-	Balance(domain.Recipe, domain.Pans) (*domain.RecipeAggregate, error)
+	Balance(context.Context, domain.Recipe, domain.Pans) (*domain.RecipeAggregate, error)
 }
 
 type RecipeService struct {
@@ -32,8 +34,8 @@ func NewRecipeService(repository RecipeRepository, calculator CalculatorService,
 	}
 }
 
-func (rs *RecipeService) Handle(recipeUuid uuid.UUID, request domain.Pans) (*domain.RecipeAggregate, error) {
-	pans, calculatorError := rs.calculator.TotalDoughWeightByPans(request)
+func (rs *RecipeService) Handle(ctx context.Context, recipeUuid uuid.UUID, request domain.Pans) (*domain.RecipeAggregate, error) {
+	pans, calculatorError := rs.calculator.TotalDoughWeightByPans(ctx, request)
 	if calculatorError != nil {
 		return nil, calculatorError
 	}
@@ -43,7 +45,7 @@ func (rs *RecipeService) Handle(recipeUuid uuid.UUID, request domain.Pans) (*dom
 		return nil, err
 	}
 
-	response, balancerError := rs.balancer.Balance(*recipe, *pans)
+	response, balancerError := rs.balancer.Balance(ctx, *recipe, *pans)
 	if balancerError != nil {
 		return nil, balancerError
 	}

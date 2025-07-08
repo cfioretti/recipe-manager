@@ -6,7 +6,9 @@ import (
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/metadata"
 
+	"github.com/cfioretti/recipe-manager/internal/infrastructure/logging"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/domain"
 	pb "github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/grpc/proto/generated"
 )
@@ -38,12 +40,16 @@ func (c *CalculatorClient) Close() error {
 	return c.conn.Close()
 }
 
-func (c *CalculatorClient) TotalDoughWeightByPans(pans domain.Pans) (*domain.Pans, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), c.timeout)
+func (c *CalculatorClient) TotalDoughWeightByPans(ctx context.Context, pans domain.Pans) (*domain.Pans, error) {
+	timeoutCtx, cancel := context.WithTimeout(ctx, c.timeout)
 	defer cancel()
 
+	correlationID := logging.GetCorrelationID(ctx)
+	md := metadata.Pairs("x-correlation-id", correlationID)
+	timeoutCtx = metadata.NewOutgoingContext(timeoutCtx, md)
+
 	protoRequest := toProtoMessage(&pans)
-	response, err := c.client.TotalDoughWeightByPans(ctx, &pb.PansRequest{
+	response, err := c.client.TotalDoughWeightByPans(timeoutCtx, &pb.PansRequest{
 		Pans: protoRequest,
 	})
 	if err != nil {

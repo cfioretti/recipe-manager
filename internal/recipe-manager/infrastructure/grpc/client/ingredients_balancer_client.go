@@ -7,7 +7,9 @@ import (
 	"github.com/google/uuid"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/metadata"
 
+	"github.com/cfioretti/recipe-manager/internal/infrastructure/logging"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/domain"
 	pb "github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/grpc/proto/generated"
 )
@@ -39,14 +41,18 @@ func (c *IngredientsBalancerClient) Close() error {
 	return c.conn.Close()
 }
 
-func (c *IngredientsBalancerClient) Balance(recipe domain.Recipe, pans domain.Pans) (*domain.RecipeAggregate, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), c.timeout)
+func (c *IngredientsBalancerClient) Balance(ctx context.Context, recipe domain.Recipe, pans domain.Pans) (*domain.RecipeAggregate, error) {
+	timeoutCtx, cancel := context.WithTimeout(ctx, c.timeout)
 	defer cancel()
+
+	correlationID := logging.GetCorrelationID(ctx)
+	md := metadata.Pairs("x-correlation-id", correlationID)
+	timeoutCtx = metadata.NewOutgoingContext(timeoutCtx, md)
 
 	protoRecipe := toProtoRecipe(recipe)
 	protoPans := toProtoPans(pans)
 
-	response, err := c.client.Balance(ctx, &pb.BalanceRequest{
+	response, err := c.client.Balance(timeoutCtx, &pb.BalanceRequest{
 		Recipe: protoRecipe,
 		Pans:   protoPans,
 	})
