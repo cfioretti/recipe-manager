@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/logging"
+	"github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/tracing"
 	"net/http"
 	"os"
 	"os/signal"
@@ -15,9 +17,9 @@ import (
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/spf13/viper"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 
 	"github.com/cfioretti/recipe-manager/configs"
-	"github.com/cfioretti/recipe-manager/internal/infrastructure/logging"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/application"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/grpc/client"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/mysql"
@@ -36,6 +38,17 @@ func main() {
 
 	ctx := context.Background()
 	logger.WithContext(ctx).Info("Starting recipe-manager service", logging.ServiceNameKey, serviceName)
+
+	if err := tracing.InitTracing(nil); err != nil {
+		logger.WithError(err).Fatal("Failed to initialize tracing")
+	}
+	defer func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		if err := tracing.ShutdownTracing(ctx); err != nil {
+			logger.WithError(err).Error("Failed to shutdown tracing")
+		}
+	}()
 
 	if err := setEnvConfigs(); err != nil {
 		logger.WithError(err).Fatal("Failed to load configuration")
@@ -76,6 +89,9 @@ func setupRouter(db *sql.DB) *gin.Engine {
 	)
 
 	router := gin.New()
+
+	router.Use(otelgin.Middleware(serviceName))
+
 	router.Use(logger.GinMiddleware())
 
 	router.Use(gin.CustomRecovery(func(c *gin.Context, recovered interface{}) {

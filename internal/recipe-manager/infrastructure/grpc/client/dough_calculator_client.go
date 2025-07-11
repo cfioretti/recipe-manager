@@ -2,13 +2,14 @@ package client
 
 import (
 	"context"
+	"github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/logging"
 	"time"
 
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
 
-	"github.com/cfioretti/recipe-manager/internal/infrastructure/logging"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/domain"
 	pb "github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/grpc/proto/generated"
 )
@@ -21,7 +22,11 @@ type CalculatorClient struct {
 }
 
 func NewDoughCalculatorClient(serverAddr string, timeout time.Duration) (*CalculatorClient, error) {
-	conn, err := grpc.NewClient(serverAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.NewClient(
+		serverAddr,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithStatsHandler(otelgrpc.NewClientHandler()),
+	)
 	if err != nil {
 		return nil, err
 	}

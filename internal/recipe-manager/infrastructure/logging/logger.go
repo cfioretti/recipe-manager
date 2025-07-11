@@ -8,12 +8,15 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
+	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 )
 
 const (
 	CorrelationIDKey = "correlation_id"
+	TraceIDKey       = "trace_id"
+	SpanIDKey        = "span_id"
 	ServiceNameKey   = "service_name"
 	VersionKey       = "version"
 
@@ -76,6 +79,16 @@ func (l *Logger) WithContext(ctx context.Context) *logrus.Entry {
 		}
 	}
 
+	if span := trace.SpanFromContext(ctx); span != nil {
+		spanCtx := span.SpanContext()
+		if spanCtx.HasTraceID() {
+			entry = entry.WithField(TraceIDKey, spanCtx.TraceID().String())
+		}
+		if spanCtx.HasSpanID() {
+			entry = entry.WithField(SpanIDKey, spanCtx.SpanID().String())
+		}
+	}
+
 	return entry
 }
 
@@ -131,20 +144,18 @@ func (l *Logger) GRPCUnaryInterceptor() grpc.UnaryServerInterceptor {
 		ctx = NewContextWithCorrelationID(ctx, correlationID)
 
 		start := time.Now()
-		l.WithFields(logrus.Fields{
-			CorrelationIDKey: correlationID,
-			"method":         info.FullMethod,
-			"type":           "grpc_request",
+		l.WithContext(ctx).WithFields(logrus.Fields{
+			"method": info.FullMethod,
+			"type":   "grpc_request",
 		}).Info("gRPC request started")
 
 		resp, err := handler(ctx, req)
 
 		duration := time.Since(start)
-		logEntry := l.WithFields(logrus.Fields{
-			CorrelationIDKey: correlationID,
-			"method":         info.FullMethod,
-			"type":           "grpc_request",
-			"duration_ms":    duration.Milliseconds(),
+		logEntry := l.WithContext(ctx).WithFields(logrus.Fields{
+			"method":      info.FullMethod,
+			"type":        "grpc_request",
+			"duration_ms": duration.Milliseconds(),
 		})
 
 		if err != nil {
@@ -164,20 +175,16 @@ func (l *Logger) GRPCStreamInterceptor() grpc.StreamServerInterceptor {
 		info *grpc.StreamServerInfo,
 		handler grpc.StreamHandler,
 	) error {
-		correlationID := GetCorrelationID(ss.Context())
-
-		l.WithFields(logrus.Fields{
-			CorrelationIDKey: correlationID,
-			"method":         info.FullMethod,
-			"type":           "grpc_stream",
+		l.WithContext(ss.Context()).WithFields(logrus.Fields{
+			"method": info.FullMethod,
+			"type":   "grpc_stream",
 		}).Info("gRPC stream started")
 
 		err := handler(srv, ss)
 
-		logEntry := l.WithFields(logrus.Fields{
-			CorrelationIDKey: correlationID,
-			"method":         info.FullMethod,
-			"type":           "grpc_stream",
+		logEntry := l.WithContext(ss.Context()).WithFields(logrus.Fields{
+			"method": info.FullMethod,
+			"type":   "grpc_stream",
 		})
 
 		if err != nil {
@@ -203,24 +210,22 @@ func (l *Logger) GinMiddleware() gin.HandlerFunc {
 		c.Header("X-Correlation-ID", correlationID)
 
 		start := time.Now()
-		l.WithFields(logrus.Fields{
-			CorrelationIDKey: correlationID,
-			"method":         c.Request.Method,
-			"path":           c.Request.URL.Path,
-			"client_ip":      c.ClientIP(),
-			"user_agent":     c.Request.UserAgent(),
+		l.WithContext(ctx).WithFields(logrus.Fields{
+			"method":     c.Request.Method,
+			"path":       c.Request.URL.Path,
+			"client_ip":  c.ClientIP(),
+			"user_agent": c.Request.UserAgent(),
 		}).Info("Request started")
 
 		c.Next()
 
 		duration := time.Since(start)
-		l.WithFields(logrus.Fields{
-			CorrelationIDKey: correlationID,
-			"method":         c.Request.Method,
-			"path":           c.Request.URL.Path,
-			"status_code":    c.Writer.Status(),
-			"duration_ms":    duration.Milliseconds(),
-			"response_size":  c.Writer.Size(),
+		l.WithContext(ctx).WithFields(logrus.Fields{
+			"method":        c.Request.Method,
+			"path":          c.Request.URL.Path,
+			"status_code":   c.Writer.Status(),
+			"duration_ms":   duration.Milliseconds(),
+			"response_size": c.Writer.Size(),
 		}).Info("Request completed")
 	}
 }
