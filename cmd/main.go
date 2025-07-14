@@ -20,7 +20,9 @@ import (
 	"github.com/cfioretti/recipe-manager/configs"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/application"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/grpc/client"
+	httpHandlers "github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/http"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/logging"
+	prometheusMetrics "github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/metrics"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/mysql"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/tracing"
 	apihttp "github.com/cfioretti/recipe-manager/internal/recipe-manager/interfaces/api/http"
@@ -64,12 +66,14 @@ func main() {
 		}
 	}()
 
-	router := setupRouter(db)
+	prometheusMetrics := prometheusMetrics.NewPrometheusMetrics()
+
+	router := setupRouter(db, prometheusMetrics)
 
 	startServerWithGracefulShutdown(router)
 }
 
-func setupRouter(db *sql.DB) *gin.Engine {
+func setupRouter(db *sql.DB, metrics *prometheusMetrics.PrometheusMetrics) *gin.Engine {
 	calculatorService, err := initializeCalculatorService()
 	if err != nil {
 		logger.WithError(err).Fatal("Failed to initialize calculator service")
@@ -91,7 +95,6 @@ func setupRouter(db *sql.DB) *gin.Engine {
 	router := gin.New()
 
 	router.Use(otelgin.Middleware(serviceName))
-
 	router.Use(logger.GinMiddleware())
 
 	router.Use(gin.CustomRecovery(func(c *gin.Context, recovered interface{}) {
@@ -103,13 +106,11 @@ func setupRouter(db *sql.DB) *gin.Engine {
 
 	router.Use(corsMiddleware())
 
-	router.GET("/health", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"status":  "healthy",
-			"service": serviceName,
-			"version": version,
-		})
-	})
+	metricsHandler := httpHandlers.NewMetricsHandler()
+	metricsHandler.RegisterRoutes(router)
+
+	healthHandler := httpHandlers.NewHealthHandler()
+	healthHandler.RegisterRoutes(router)
 
 	router.POST("/recipes/:uuid/aggregate", recipeHandler.RetrieveRecipeAggregate)
 
