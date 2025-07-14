@@ -2,7 +2,6 @@ package client
 
 import (
 	"context"
-	"github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/logging"
 	"time"
 
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
@@ -12,6 +11,7 @@ import (
 
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/domain"
 	pb "github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/grpc/proto/generated"
+	"github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/logging"
 )
 
 type CalculatorClient struct {

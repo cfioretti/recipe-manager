@@ -5,8 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/logging"
-	"github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/tracing"
 	"net/http"
 	"os"
 	"os/signal"
@@ -22,7 +20,9 @@ import (
 	"github.com/cfioretti/recipe-manager/configs"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/application"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/grpc/client"
+	"github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/logging"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/mysql"
+	"github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/tracing"
 	apihttp "github.com/cfioretti/recipe-manager/internal/recipe-manager/interfaces/api/http"
 )
 

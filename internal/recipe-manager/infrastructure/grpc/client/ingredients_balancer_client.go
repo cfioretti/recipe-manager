@@ -2,7 +2,6 @@ package client
 
 import (
 	"context"
-	"github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/logging"
 	"time"
 
 	"github.com/google/uuid"
@@ -13,6 +12,7 @@ import (
 
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/domain"
 	pb "github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/grpc/proto/generated"
+	"github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/logging"
 )
 
 type IngredientsBalancerClient struct {
