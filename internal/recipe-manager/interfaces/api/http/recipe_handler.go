@@ -2,6 +2,7 @@ package http
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -43,10 +44,7 @@ func (rc *RecipeHandler) RetrieveRecipeAggregate(ctx *gin.Context) {
 	}
 
 	aggregateResponse := dto.DomainToDTO(*recipe)
-	ctx.JSON(
-		http.StatusOK,
-		gin.H{"data": &aggregateResponse},
-	)
+	writeDataResponse(ctx, http.StatusOK, &aggregateResponse)
 }
 
 func errorResponse(ctx *gin.Context, statusCode int, errorMsg string) {
@@ -54,4 +52,13 @@ func errorResponse(ctx *gin.Context, statusCode int, errorMsg string) {
 		statusCode,
 		gin.H{"error": errorMsg},
 	)
+}
+
+func writeDataResponse(ctx *gin.Context, statusCode int, data any) {
+	payload := gin.H{"data": data}
+	if _, err := json.Marshal(payload); err != nil {
+		errorResponse(ctx, http.StatusBadGateway, "failed to serialize response payload")
+		return
+	}
+	ctx.JSON(statusCode, payload)
 }

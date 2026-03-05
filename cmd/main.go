@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"strings"
 	"syscall"
 	"time"
@@ -22,6 +23,7 @@ import (
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/grpc/client"
 	httpHandlers "github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/http"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/logging"
+	"github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/mcp"
 	prometheusMetrics "github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/metrics"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/mysql"
 	"github.com/cfioretti/recipe-manager/internal/recipe-manager/infrastructure/tracing"
@@ -91,6 +93,13 @@ func setupRouter(db *sql.DB, metrics *prometheusMetrics.PrometheusMetrics) *gin.
 			balancerService,
 		),
 	)
+	generateRecipeHandler := apihttp.NewGenerateRecipeHandler(
+		application.NewGenerateRecipeService(
+			loadRecipeMCPClient(),
+			calculatorService,
+			balancerService,
+		),
+	)
 
 	router := gin.New()
 
@@ -113,6 +122,7 @@ func setupRouter(db *sql.DB, metrics *prometheusMetrics.PrometheusMetrics) *gin.
 	healthHandler.RegisterRoutes(router)
 
 	router.POST("/recipes/:uuid/aggregate", recipeHandler.RetrieveRecipeAggregate)
+	router.POST("/recipes/generate", generateRecipeHandler.GenerateRecipeAggregate)
 
 	return router
 }
@@ -202,6 +212,41 @@ func loadBalancerGrpcClient() (*client.IngredientsBalancerClient, error) {
 
 	logger.WithField("address", config.Address).Info("Balancer gRPC client created")
 	return balancerClient, nil
+}
+
+func loadRecipeMCPClient() *mcp.RecipeMCPClient {
+	mcpBaseURL := os.Getenv("MCP_SERVER_BASE_URL")
+	if mcpBaseURL == "" {
+		mcpBaseURL = "http://recipe-mcp-server:8080"
+	}
+	mcpTimeoutMs := readIntEnvOrDefault("MCP_CLIENT_TIMEOUT_MS", 60000)
+
+	logger.WithFields(map[string]interface{}{
+		"mcp_base_url":        mcpBaseURL,
+		"mcp_client_timeout":  mcpTimeoutMs,
+		"mcp_client_timeoutU": "ms",
+	}).Info("MCP client initialized")
+
+	return mcp.NewRecipeMCPClient(mcpBaseURL, time.Duration(mcpTimeoutMs)*time.Millisecond)
+}
+
+func readIntEnvOrDefault(key string, defaultValue int) int {
+	raw := os.Getenv(key)
+	if raw == "" {
+		return defaultValue
+	}
+
+	value, err := strconv.Atoi(raw)
+	if err != nil || value <= 0 {
+		logger.WithFields(map[string]interface{}{
+			"key":     key,
+			"value":   raw,
+			"default": defaultValue,
+		}).Warn("Invalid integer env value, using default")
+		return defaultValue
+	}
+
+	return value
 }
 
 func loadDBConfig() (*sql.DB, error) {

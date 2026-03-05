@@ -1,8 +1,10 @@
 package dto
 
 import (
-	"github.com/cfioretti/recipe-manager/internal/recipe-manager/domain"
 	"strconv"
+
+	"github.com/cfioretti/recipe-manager/internal/recipe-manager/application"
+	"github.com/cfioretti/recipe-manager/internal/recipe-manager/domain"
 )
 
 type PanRequest struct {
@@ -22,8 +24,26 @@ type Measures struct {
 }
 
 func (r PanRequest) ToDomain() domain.Pans {
-	pans := make([]domain.Pan, len(r.Pans))
-	for i, p := range r.Pans {
+	return pansToDomain(r.Pans)
+}
+
+type GenerateRecipeRequest struct {
+	Mode   string `json:"mode" binding:"required,oneof=random prompt"`
+	Prompt string `json:"prompt,omitempty"`
+	Pans   []Pan  `json:"pans" binding:"required,dive"`
+}
+
+func (r GenerateRecipeRequest) ToApplication() application.GenerateRecipeCommand {
+	return application.GenerateRecipeCommand{
+		Mode:   r.Mode,
+		Prompt: r.Prompt,
+		Pans:   pansToDomain(r.Pans),
+	}
+}
+
+func pansToDomain(requestPans []Pan) domain.Pans {
+	pans := make([]domain.Pan, len(requestPans))
+	for i, p := range requestPans {
 		pan := domain.Pan{
 			Shape:    p.Shape,
 			Measures: domain.Measures{},
@@ -46,7 +66,5 @@ func (r PanRequest) ToDomain() domain.Pans {
 		pans[i] = pan
 	}
 
-	return domain.Pans{
-		Pans: pans,
-	}
+	return domain.Pans{Pans: pans}
 }
